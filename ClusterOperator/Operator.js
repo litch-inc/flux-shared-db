@@ -334,19 +334,6 @@ class Operator {
           });
         }
       }
-      /*
-      if (BackLog.writeLock) {
-        const myTicket = this.operator.getTicket();
-        log.info(`put into queue: ${myTicket}, in queue: ${this.operator.masterQueue.length}`, 'cyan');
-        this.operator.masterQueue.push(myTicket);
-        while (BackLog.writeLock || this.operator.masterQueue[0] !== myTicket) {
-          await timer.setTimeout(5);
-        }
-        BackLog.writeLock = true;
-        this.operator.masterQueue.shift();
-        log.info(`out of queue: ${myTicket}, in queue: ${this.operator.masterQueue.length}`, 'cyan');
-      }
-      */
       const result = await BackLog.pushQuery(query, 0, Date.now(), false, connId, fullQuery || query);
       // log.info(`sending query to slaves: ${JSON.stringify(result)}`);
       if (result) {
@@ -473,34 +460,6 @@ class Operator {
               // log.info(`finish read ${id}`);
               // log.info(`result: ${JSON.stringify(result)}`);
             }
-            // log.info(result);
-            // Then send it back to the user in table format
-            /*
-            if(result[1]){
-              let fieldNames = [];
-              for (let definition of result[1]) fieldNames.push(definition.name);
-              this.sendDefinitions(result[1]);
-              let finalResult = [];
-              for (let row of result[0]){
-                let newRow =[];
-                for(let filed of fieldNames){
-                  newRow.push(row[filed]);
-                }
-                finalResult.push(newRow);
-              }
-
-              this.sendRows(finalResult);
-              break;
-            } else if(result[0]){
-              this.sendOK({ message: 'OK' });
-              break;
-            }else if(result.warningStatus==0){
-              this.sendOK({ message: 'OK' });
-              break;
-            }else{
-              //this.sendError({ message: result[3] });
-              //break;
-            } */
           }
 
           break;
@@ -827,52 +786,6 @@ class Operator {
     }
     return null;
   }
-
-  /**
-  * [getMyIp]
-  */
-  /*
-  static async getMyIp(retries=1) {
-    try{
-      if(this.myIP !== null){
-        return this.myIP
-      }else{
-        //let ipList = [];
-        for(let i=0; i < this.OpNodes.length && i < 5; i++){
-          log.info(`asking myip from ${this.OpNodes[i].ip}`);
-          let tempIp = await fluxAPI.getMyIp(this.OpNodes[i].ip, config.containerApiPort);
-          log.info(`response from ${this.OpNodes[i].ip} was ${tempIp}`);
-          let j=1;
-
-          if(tempIp!==null){
-            this.myIP = tempIp;
-            log.info(`My ip is ${JSON.stringify(tempIp)}`);
-            return tempIp;
-          }
-        }
-        log.info(`other nodes are not responding to api port ${config.containerApiPort}, retriying again ${retries}...`);
-        await this.updateAppInfo();
-        await timer.setTimeout(15000 * retries);
-        return this.getMyIp(retries+1);
-        log.info(`all response list: ${JSON.stringify(ipList)}`);
-        //find the highest occurrence in the array
-        if(ipList.length>=2){
-          const myIP = ipList.sort((a,b) =>ipList.filter(v => v===a).length - ipList.filter(v => v===b).length).pop();
-          this.myIP = myIP;
-          log.info(`My ip is ${JSON.stringify(myIP)}`);
-          return myIP;
-        }else{
-          log.info(`other nodes are not responding to api port ${config.containerApiPort}, retriying again ${retries}...`);
-          await this.updateAppInfo();
-          await timer.setTimeout(15000 * retries);
-          return this.getMyIp(retries+1);
-        }
-      }
-    }catch(err){
-      log.error(err);
-    }
-  }
-  */
 
   /**
   * [ConnectLocalDB]

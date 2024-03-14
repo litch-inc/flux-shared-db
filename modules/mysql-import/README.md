@@ -80,8 +80,8 @@ Set or change the database to import to.
 
 Set a callback to be called as the importer processes chunks of the dump file. Callback is provided an object with the following properties:
 
- - `total_files`: The total files in the queue. 
- - `file_no`: The number of the current dump file in the queue. 
+ - `total_files`: The total files in the queue.
+ - `file_no`: The number of the current dump file in the queue.
  - `bytes_processed`: The number of bytes of the file processed.
  - `total_bytes`: The size of the dump file.
  - `file_path`: The full path to the dump file.
@@ -90,8 +90,8 @@ Set a callback to be called as the importer processes chunks of the dump file. C
 
 Set a callback to be called after each dump file has completed processing. Callback is provided an object with the following properties:
 
- - `total_files`: The total files in the queue. 
- - `file_no`: The number of the current dump file in the queue. 
+ - `total_files`: The total files in the queue.
+ - `file_no`: The number of the current dump file in the queue.
  - `file_path`: The full path to the dump file.
  - `error`: If there was an error, the error object; if no errors, this will be `null`.
 
@@ -119,4 +119,4 @@ Disconnects the connection. If `graceful` is switched to false it will force clo
 
 ## Contributing
 
-Contributions are more than welcome! Please check out the [Contributing Guidelines](https://github.com/Pamblam/mysql-import/blob/master/CONTRIBUTING.md) for this project. 
+Contributions are more than welcome! Please check out the [Contributing Guidelines](https://github.com/Pamblam/mysql-import/blob/master/CONTRIBUTING.md) for this project.

@@ -1,46 +1,44 @@
+class queryParser extends stream.Writable {
 
-class queryParser extends stream.Writable{
-	
 	constructor(options){
 		/* istanbul ignore next */
 		options = options || {};
 		super(options);
-		
+
 		// The number of bytes processed so far
 		this.processed_size = 0;
-		
+
 		// The progress callback
 		this.onProgress = options.onProgress || (() => {});
-		
+
 		// the encoding of the file being read
 		this.encoding = options.encoding || 'utf8';
-		
+
 		// the encoding of the database connection
 		this.db_connection = options.db_connection;
-		
+
 		// The quote type (' or ") if the parser 
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
+
 		// An array of chars representing the substring
 		// the is currently being parsed
 		this.buffer = [];
-		
+
 		// Is the current char escaped
 		this.escaped = false;
-		
+
 		// The string that denotes the end of a query
 		this.delimiter = ';';
-		
+
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
-		
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// "Private" methods" //////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////
-	
+
 	// handle piped data
 	async _write(chunk, enc, next) {
 		var query;
@@ -60,7 +58,7 @@ class queryParser extends stream.Writable{
 		this.onProgress(this.processed_size);
 		next(error);
 	}
-	
+
 	// Execute a query, return a Promise
 	executeQuery(query){
 		return new Promise((resolve, reject)=>{
@@ -73,7 +71,7 @@ class queryParser extends stream.Writable{
 			});
 		});
 	}
-	
+
 	// Parse the next char in the string
 	// return a full query if one is detected after parsing this char
 	// else return false.
@@ -84,7 +82,7 @@ class queryParser extends stream.Writable{
 		this.checkQuote(char);
 		return this.checkEndOfQuery();
 	}
-	
+
 	// Check if the current char has been escaped
 	// and update this.escaped
 	checkEscapeChar(){
@@ -95,7 +93,7 @@ class queryParser extends stream.Writable{
 			this.escaped = false;
 		}
 	}
-	
+
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char){
 		var buffer_str = this.buffer.join('').toLowerCase().trim();
@@ -111,7 +109,7 @@ class queryParser extends stream.Writable{
 			}
 		}
 	}
-	
+
 	// Check if the current char is a quote
 	checkQuote(char){
 		var isQuote = (char === '"' || char === "'") && !this.escaped;
@@ -121,7 +119,7 @@ class queryParser extends stream.Writable{
 			this.quoteType = char;
 		}
 	}
-	
+
 	// Check if we're at the end of the query
 	// return the query if so, else return false;
 	checkEndOfQuery(){
@@ -141,7 +139,7 @@ class queryParser extends stream.Writable{
 			query = this.buffer.join('').trim();
 			this.buffer = [];
 		}
-		
+
 		return query;
 	}
 }

@@ -22,18 +22,6 @@ and limitations under the License.
 ***************************************************************************** */
 /* global Reflect, Promise */
 
-
-
-
-
-
-
-
-
-
-
-
-
 function __awaiter(thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
@@ -641,7 +629,7 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
                         }
                         resolve();
                     });
-                    query.on('error', 
+                    query.on('error',
                     /* istanbul ignore next */ err => reject(err));
                 });
                 // update the table definition

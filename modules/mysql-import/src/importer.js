@@ -1,4 +1,3 @@
-
 /**
  * mysql-import - Importer class
  * @version {{ VERSION }}
@@ -6,7 +5,6 @@
  */
 
 class Importer{
-	
 	/**
 	 * new Importer(settings)
 	 * @param {host, user, password[, database]} settings - login credentials
@@ -21,7 +19,7 @@ class Importer{
 		this._total_files = 0;
 		this._current_file_no = 0;
 	}
-	
+
 	/**
 	 * Get an array of the imported files
 	 * @returns {Array}
@@ -29,11 +27,11 @@ class Importer{
 	getImported(){
 		return this._imported.slice(0);
 	}
-	
+
 	/**
 	 * Set the encoding to be used for reading the dump files.
 	 * @param string - encoding type to be used.
-	 * @throws {Error} - if unsupported encoding type. 
+	 * @throws {Error} - if unsupported encoding type.
 	 * @returns {undefined}
 	 */
 	setEncoding(encoding){
@@ -51,7 +49,7 @@ class Importer{
 		}
 		this._encoding = encoding;
 	}
-	
+
 	/**
 	 * Set or change the database to be used
 	 * @param string - database name
@@ -66,20 +64,20 @@ class Importer{
 			}
 			this._conn.changeUser({database}, err=>{
 				if (err){
-					reject(err);	
+					reject(err);
 				}else{
 					resolve();
 				}
 			});
 		});
 	}
-	
+
 	/**
 	 * Set a progress callback
 	 * @param {Function} cb - Callback function is called whenever a chunk of
 	 *		the stream is read. It is provided an object with the folling properties:
-	 *			- total_files: The total files in the queue. 
-	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- total_files: The total files in the queue.
+	 *			- file_no: The number of the current dump file in the queue.
 	 *			- bytes_processed: The number of bytes of the file processed.
 	 *			- total_bytes: The size of the dump file.
 	 *			- file_path: The full path to the dump file.
@@ -89,7 +87,7 @@ class Importer{
 		if(typeof cb !== 'function') return;
 		this._progressCB = cb;
 	}
-	
+
 	/**
 	 * Set a progress callback
 	 * @param {Function} cb - Callback function is called whenever a dump
@@ -103,7 +101,7 @@ class Importer{
 		if(typeof cb !== 'function') return;
 		this._dumpCompletedCB = cb;
 	}
-	
+
 	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
@@ -116,7 +114,7 @@ class Importer{
 				var files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
 				this._current_file_no = 0;
-				
+
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
@@ -139,7 +137,7 @@ class Importer{
 			}
 		});
 	};
-	
+
 	/**
 	 * Disconnect mysql. This is done automatically, so shouldn't need to be manually called.
 	 * @param bool graceful - force close?
@@ -163,14 +161,14 @@ class Importer{
 			}else{
 				this._conn.destroy();
 				resolve();
-			}				
+			}
 		});
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// Private methods /////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Import a single .sql file into the database
 	 * @param {object} fileObj - Object containing the following properties:
@@ -180,53 +178,53 @@ class Importer{
 	 */
 	_importSingleFile(fileObj){
 		return new Promise((resolve, reject)=>{
-			
+
 			var parser = new queryParser({
 				db_connection: this._conn,
 				encoding: this._encoding,
 				onProgress: (progress) => {
 					this._progressCB({
-						total_files: this._total_files, 
-						file_no: this._current_file_no, 
-						bytes_processed: progress, 
+						total_files: this._total_files,
+						file_no: this._current_file_no,
+						bytes_processed: progress,
 						total_bytes: fileObj.size,
 						file_path: fileObj.file
 					});
 				}
 			});
-			
+
 			const dumpCompletedCB = (err) => this._dumpCompletedCB({
-				total_files: this._total_files, 
-				file_no: this._current_file_no, 
+				total_files: this._total_files,
+				file_no: this._current_file_no,
 				file_path: fileObj.file,
 				error: err
 			});
-			
+
 			parser.on('finish', ()=>{
 				this._imported.push(fileObj.file);
 				dumpCompletedCB(null);
 				resolve();
 			});
-			
-			
+
+
 			parser.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
 			});
-			
+
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
-			
+
 			/* istanbul ignore next */
 			readerStream.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
 			});
-			
+
 			readerStream.pipe(parser);
 		});
 	}
-	
+
 	/**
 	 * Connect to the mysql server
 	 * @returns {Promise}
@@ -240,7 +238,7 @@ class Importer{
 			var connection = mysql.createConnection(this._connection_settings);
 			connection.connect(err=>{
 				if (err){
-					reject(err);	
+					reject(err);
 				}else{
 					this._conn = connection;
 					resolve();
@@ -248,7 +246,7 @@ class Importer{
 			});
 		});
 	}
-	
+
 	/**
 	 * Check if a file exists
 	 * @param string filepath
@@ -282,7 +280,7 @@ class Importer{
 			});
 		});
 	}
-	
+
 	/**
 	 * Read contents of a directory
 	 * @param string filepath
@@ -348,7 +346,7 @@ class Importer{
 			}
 		});
 	}
-	
+
 }
 
 /**
