@@ -28,9 +28,9 @@ Wanna contribute? That's awesome! I work full-time and when I'm not working I'm 
 
 ### Code Congruency
 
-Please keep the code congruent and consistent. 
+Please keep the code congruent and consistent.
 
- - Use tabs instead of spaces to indent. 
+ - Use tabs instead of spaces to indent.
  - Indent properly.
  - Curlies on the same line.
 

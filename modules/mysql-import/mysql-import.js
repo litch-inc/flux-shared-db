@@ -1,4 +1,4 @@
-/* eslint-disable */ 
+/* eslint-disable */
 /**
  * mysql-import - v5.0.26
  * Import .sql into a MySQL database with Node.
@@ -23,7 +23,7 @@ const BackLog = require('../../ClusterOperator/Backlog');
  */
 
 class Importer{
-	
+
 	/**
 	 * new Importer(settings)
 	 * @param {host, user, password[, database]} settings - login credentials
@@ -40,7 +40,7 @@ class Importer{
 		this._total_files = 0;
 		this._current_file_no = 0;
 	}
-	
+
 	/**
 	 * Get an array of the imported files
 	 * @returns {Array}
@@ -48,11 +48,11 @@ class Importer{
 	getImported(){
 		return this._imported.slice(0);
 	}
-	
+
 	/**
 	 * Set the encoding to be used for reading the dump files.
 	 * @param string - encoding type to be used.
-	 * @throws {Error} - if unsupported encoding type. 
+	 * @throws {Error} - if unsupported encoding type.
 	 * @returns {undefined}
 	 */
 	setEncoding(encoding){
@@ -70,7 +70,7 @@ class Importer{
 		}
 		this._encoding = encoding;
 	}
-	
+
 	/**
 	 * Set or change the database to be used
 	 * @param string - database name
@@ -85,20 +85,20 @@ class Importer{
 			}
 			this._conn.changeUser({database}, err=>{
 				if (err){
-					reject(err);	
+					reject(err);
 				}else{
 					resolve();
 				}
 			});
 		});
 	}
-	
+
 	/**
 	 * Set a progress callback
 	 * @param {Function} cb - Callback function is called whenever a chunk of
 	 *		the stream is read. It is provided an object with the folling properties:
-	 *			- total_files: The total files in the queue. 
-	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- total_files: The total files in the queue.
+	 *			- file_no: The number of the current dump file in the queue.
 	 *			- bytes_processed: The number of bytes of the file processed.
 	 *			- total_bytes: The size of the dump file.
 	 *			- file_path: The full path to the dump file.
@@ -108,13 +108,13 @@ class Importer{
 		if(typeof cb !== 'function') return;
 		this._progressCB = cb;
 	}
-	
+
 	/**
 	 * Set a progress callback
 	 * @param {Function} cb - Callback function is called whenever a dump
 	 *		file has finished processing.
-	 *			- total_files: The total files in the queue. 
-	 *			- file_no: The number of the current dump file in the queue. 
+	 *			- total_files: The total files in the queue.
+	 *			- file_no: The number of the current dump file in the queue.
 	 *			- file_path: The full path to the dump file.
 	 * @returns {undefined}
 	 */
@@ -122,7 +122,7 @@ class Importer{
 		if(typeof cb !== 'function') return;
 		this._dumpCompletedCB = cb;
 	}
-	
+
 	/**
 	 * Import (an) .sql file(s).
 	 * @param string|array input - files or paths to scan for .sql files
@@ -135,7 +135,7 @@ class Importer{
 				var files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
 				this._current_file_no = 0;
-				
+
 				var error = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
@@ -158,7 +158,7 @@ class Importer{
 			}
 		});
 	};
-	
+
 	/**
 	 * Disconnect mysql. This is done automatically, so shouldn't need to be manually called.
 	 * @param bool graceful - force close?
@@ -182,14 +182,14 @@ class Importer{
 			}else{
 				this._conn.destroy();
 				resolve();
-			}				
+			}
 		});
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// Private methods /////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////
-	
+
 	/**
 	 * Import a single .sql file into the database
 	 * @param {object} fileObj - Object containing the following properties:
@@ -206,47 +206,47 @@ class Importer{
 				encoding: this._encoding,
 				onProgress: (progress) => {
 					this._progressCB({
-						total_files: this._total_files, 
-						file_no: this._current_file_no, 
-						bytes_processed: progress, 
+						total_files: this._total_files,
+						file_no: this._current_file_no,
+						bytes_processed: progress,
 						total_bytes: fileObj.size,
 						file_path: fileObj.file
 					});
 				}
 			});
-			
+
 			const dumpCompletedCB = (err) => this._dumpCompletedCB({
-				total_files: this._total_files, 
-				file_no: this._current_file_no, 
+				total_files: this._total_files,
+				file_no: this._current_file_no,
 				file_path: fileObj.file,
 				error: err
 			});
-			
+
 			parser.on('finish', ()=>{
 				this._imported.push(fileObj.file);
 				dumpCompletedCB(null);
 				resolve();
 			});
-			
-			
+
+
 			parser.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
 			});
-			
+
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
-			
+
 			/* istanbul ignore next */
 			readerStream.on('error', (err)=>{
 				dumpCompletedCB(err);
 				reject(err);
 			});
-			
+
 			readerStream.pipe(parser);
 		});
 	}
-	
+
 	/**
 	 * Connect to the mysql server
 	 * @returns {Promise}
@@ -260,7 +260,7 @@ class Importer{
 			var connection = mysql.createConnection(this._connection_settings);
 			connection.connect(err=>{
 				if (err){
-					reject(err);	
+					reject(err);
 				}else{
 					this._conn = connection;
 					resolve();
@@ -268,7 +268,7 @@ class Importer{
 			});
 		});
 	}
-	
+
 	/**
 	 * Check if a file exists
 	 * @param string filepath
@@ -302,7 +302,7 @@ class Importer{
 			});
 		});
 	}
-	
+
 	/**
 	 * Read contents of a directory
 	 * @param string filepath
@@ -368,7 +368,7 @@ class Importer{
 			}
 		});
 	}
-	
+
 }
 
 /**
@@ -379,16 +379,16 @@ Importer.version = '5.0.26';
 module.exports = Importer;
 
 /**
- * Execute the loopBody function once for each item in the items array, 
+ * Execute the loopBody function once for each item in the items array,
  * waiting for the done function (which is passed into the loopBody function)
  * to be called before proceeding to the next item in the array.
  * @param {Array} items - The array of items to iterate through
  * @param {Function} loopBody - A function to execute on each item in the array.
- *		This function is passed 3 arguments - 
+ *		This function is passed 3 arguments -
  *			1. The item in the current iteration,
  *			2. The index of the item in the array,
  *			3. A function to be called when the iteration may continue.
- * @returns {Promise} - A promise that is resolved when all the items in the 
+ * @returns {Promise} - A promise that is resolved when all the items in the
  *		in the array have been iterated through.
  */
 function slowLoop(items, loopBody) {
@@ -404,56 +404,56 @@ function slowLoop(items, loopBody) {
 
 
 class queryParser extends stream.Writable{
-	
+
 	constructor(options){
 		/* istanbul ignore next */
 		options = options || {};
 		super(options);
-		
+
 		// The number of bytes processed so far
 		this.processed_size = 0;
-		
+
 		// The progress callback
 		this.onProgress = options.onProgress || (() => {});
-		
+
 		// the encoding of the file being read
 		this.encoding = options.encoding || 'utf8';
-		
+
 		// the encoding of the database connection
 		this.db_connection = options.db_connection;
-		
-		// The quote type (' or ") if the parser 
+
+		// The quote type (' or ") if the parser
 		// is currently inside of a quote, else false
 		this.quoteType = false;
-		
+
 		// An array of chars representing the substring
 		// the is currently being parsed
 		this.buffer = [];
-		
+
 		// Is the current char escaped
 		this.escaped = false;
-		
+
 		// The string that denotes the end of a query
 		this.delimiter = ';';
-		
+
 		// Are we currently seeking new delimiter
 		this.seekingDelimiter = false;
 
     this.executeCallback = options.callback;
-		
+
     this.serverSocket = options.serverSocket;
 	}
-	
+
 	////////////////////////////////////////////////////////////////////////////
 	// "Private" methods" //////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////
-	
+
 	// handle piped data
 	async _write(chunk, enc, next) {
 		var query;
 		chunk = chunk.toString(this.encoding);
 		var error = null;
-    
+
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
 			query = this.parseChar(char);
@@ -464,13 +464,13 @@ class queryParser extends stream.Writable{
 				break;
 			}
 		}
-    
+
 		this.processed_size += chunk.length;
     //console.log(`processed ${this.processed_size}`);
 		this.onProgress(this.processed_size);
 		next(error);
 	}
-	
+
 	// Execute a query, return a Promise
 	 async executeQuery(query){
     console.log (query);
@@ -488,7 +488,7 @@ class queryParser extends stream.Writable{
 			});
 		});
 	}
-	
+
 	// Parse the next char in the string
 	// return a full query if one is detected after parsing this char
 	// else return false.
@@ -500,12 +500,12 @@ class queryParser extends stream.Writable{
     const endTime = performance.now();
     const executionTime = endTime - startTime;
     //console.log(executionTime);
-		
-		
+
+
 		this.checkQuote(char);
 		return this.checkEndOfQuery();
 	}
-	
+
 	// Check if the current char has been escaped
 	// and update this.escaped
 	checkEscapeChar(){
@@ -516,7 +516,7 @@ class queryParser extends stream.Writable{
 			this.escaped = false;
 		}
 	}
-	
+
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char){
     var buffer_str = '';
@@ -533,7 +533,7 @@ class queryParser extends stream.Writable{
 			}
 		}
 	}
-	
+
 	// Check if the current char is a quote
 	checkQuote(char){
 		var isQuote = (char === '"' || char === "'") && !this.escaped;
@@ -543,7 +543,7 @@ class queryParser extends stream.Writable{
 			this.quoteType = char;
 		}
 	}
-	
+
 	// Check if we're at the end of the query
 	// return the query if so, else return false;
 	checkEndOfQuery(){
@@ -563,7 +563,7 @@ class queryParser extends stream.Writable{
 			query = this.buffer.join('').trim();
 			this.buffer = [];
 		}
-		
+
 		return query;
 	}
 }

@@ -120,9 +120,9 @@
           </li>
 
         </ul>
-        
+
           <button class="btn btn-outline-light" id="logout-btn">Log Out</button>
-       
+
       </div>
     </div>
   </nav>
@@ -181,7 +181,7 @@
               <button type="button" class="btn btn-sm btn-outline-secondary" id="btn-upload-backup"><i class="fas fa-upload"></i> Upload Backup File</button>
             </div>
           </div>
-          
+
           <table class="table table-hover table-bordered">
             <thead>
               <tr>
@@ -267,7 +267,7 @@
             <input type="file" id="sqlFile" accept=".sql">
           <button class="btn btn-dark" id="uploadButton">Upload</button>
           </div>
-          
+
           <div id="uploadStatus"></div>
         </div>
       </div>
@@ -377,21 +377,6 @@
     });
 
   }
-  /*
-  function connectLogStream(){
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', `${window.apiURL}/getstatus`, true);
-      xhr.onreadystatechange = function(){
-        if (this.readyState === 3){
-          var chunks = this.response.split('\r\n\r\n').filter(Boolean);
-          var newestChunk = chunks.pop();
-          console.log(chunks);
-        }
-      }
-      xhr.send();
-      return xhr;      
-    }
-    */
   async function startPage(page){
     console.log(page);
     if(page === 'time-machine'){
@@ -428,10 +413,7 @@
                     $('#total-records').html(points);
                   }
                 });
-
-              
             },
-            
           });
 
 
@@ -444,12 +426,12 @@
     }
   }
   async function getBackupFileList(){
-    try{   
+    try{
       $('#backup-file-list-spinner').show();
       const backups = await axios.get(`${window.apiURL}/listbackups`, { timeout: 2000 });
       console.log(backups.data);
       if(Array.isArray(backups.data)){
-        
+
         let html = '';
         for( let i = 0; i< backups.data.length; i += 1){
           const fileName = backups.data[i].fileName.split('.')[0];
@@ -471,12 +453,12 @@
     }
   }
   async function generateClusterStats(){
-    try{   
+    try{
       $('#nodelist-spinner').show();
       const nodelist = await axios.get(`${window.apiURL}/nodelist`, { timeout: 2000 });
       console.log(nodelist.data);
       if(Array.isArray(nodelist.data)){
-        
+
         let html = '';
         for( let i = 0; i< nodelist.data.length; i += 1){
           try{
@@ -564,7 +546,7 @@
     $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to delete this file?<br><b>${filename}.sql</b></span>`);
     document.getElementById("confirm-modal").setAttribute('data-callback', 'deleteFile');
     document.getElementById("confirm-modal").setAttribute('data-param', filename);
-    
+
   }
   async function deleteFile(filename){
     const result = await axios.post(`${window.apiURL}/deletebackup`, { filename }, { timeout: 2000 });

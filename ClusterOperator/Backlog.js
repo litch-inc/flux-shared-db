@@ -48,7 +48,7 @@ class BackLog {
           log.info('Backlog DB already exists, moving on...');
         }
         await this.BLClient.setDB(config.dbBacklog);
-        let tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables 
+        let tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
           WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogCollection}'`);
         if (tableList.length === 0) {
           log.info('Backlog table not defined yet, creating backlog table...');
@@ -61,12 +61,12 @@ class BackLog {
           log.info('Backlog table already exists, moving on...');
           this.sequenceNumber = await this.getLastSequenceNumber();
         }
-        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables 
+        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
           WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogBuffer}'`);
         if (tableList.length === 0) {
           log.info('Backlog buffer table not defined yet, creating buffer table...');
           await this.BLClient.query(`CREATE TABLE ${config.dbBacklogBuffer} (seq bigint, query longtext, timestamp bigint) ENGINE=InnoDB;`);
-          await this.BLClient.query(`ALTER TABLE \`${config.dbBacklog}\`.\`${config.dbBacklogBuffer}\` 
+          await this.BLClient.query(`ALTER TABLE \`${config.dbBacklog}\`.\`${config.dbBacklogBuffer}\`
             MODIFY COLUMN \`seq\` bigint(0) UNSIGNED NOT NULL FIRST,
             ADD PRIMARY KEY (\`seq\`),
             ADD UNIQUE INDEX \`seq\`(\`seq\`);`);
@@ -142,40 +142,6 @@ class BackLog {
           }
           return [result, seqForThis, timestamp];
         }
-        /*
-        if (seq === 0 || this.sequenceNumber + 1 === seq) {
-
-          while (this.writeLock) await timer.setTimeout(10);
-          this.writeLock = true;
-          if (seq === 0) { this.sequenceNumber += 1; } else { this.sequenceNumber = seq; }
-          const seqForThis = this.sequenceNumber;
-          let result2 = null;
-          if (connId === false) {
-            result2 = await this.UserDBClient.query(query);
-          } else {
-            result2 = await ConnectionPool.getConnectionById(connId).query(query);
-          }
-          await this.BLClient.execute(
-            `INSERT INTO ${config.dbBacklogCollection} (seq, query, timestamp) VALUES (?,?,?)`,
-            [seqForThis, query, timestamp],
-          );
-          this.writeLock = false;
-          return [result2, seqForThis, timestamp];
-        } else if (this.bufferStartSequenceNumber === this.sequenceNumber + 1) {
-          await this.moveBufferToBacklog();
-          return await this.pushQuery(query, seq, timestamp, buffer, connId);
-        } else {
-          if (this.sequenceNumber + 1 < seq) {
-            log.error(`Wrong query order, ${this.sequenceNumber + 1} < ${seq}. pushing to buffer.`);
-            if (this.bufferStartSequenceNumber === 0) this.bufferStartSequenceNumber = seq;
-            this.bufferSequenceNumber = seq;
-            await this.BLClient.execute(
-              `INSERT INTO ${config.dbBacklogBuffer} (seq, query, timestamp) VALUES (?,?,?)`,
-              [seq, query, timestamp],
-            );
-          }
-          return [];
-        } */
       }
     } catch (e) {
       this.writeLock = false;

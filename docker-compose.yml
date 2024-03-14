@@ -4,7 +4,7 @@ networks:
   fluxdb:
     driver: bridge
 
-services: 
+services:
   mysqldb:
     image: mysql
     restart: always
@@ -16,8 +16,8 @@ services:
     ports:
       - 3306:3306
     networks:
-      - fluxdb 
-    volumes: 
+      - fluxdb
+    volumes:
       - db-config:/etc/mysql
       - db-data:/var/lib/mysql
   operator:
@@ -32,7 +32,7 @@ services:
     ports:
       - 3307:3307
     networks:
-      - fluxdb 
-volumes: 
+      - fluxdb
+volumes:
   db-config:
   db-data:

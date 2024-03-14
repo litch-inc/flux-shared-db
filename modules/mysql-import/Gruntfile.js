@@ -1,6 +1,5 @@
-
 module.exports = function(grunt) {
-	
+
 	var pkg = grunt.file.readJSON('package.json');
 	pkg.version = pkg.version.split(".");
 	var subversion = pkg.version.pop();
@@ -8,11 +7,11 @@ module.exports = function(grunt) {
 	pkg.version.push(subversion);
 	pkg.version = pkg.version.join(".");
 	grunt.file.write('package.json', JSON.stringify(pkg, null, 2));
-	
+
 	console.log("---------------------------------------");
 	console.log("  Building mysql-import Version "+pkg.version);
 	console.log("---------------------------------------");
-	
+
 	grunt.initConfig({
 		pkg: pkg,
 		concat: {
@@ -26,7 +25,7 @@ module.exports = function(grunt) {
 			},
 			dist: {
 				src: [
-					'src/header.js', 
+					'src/header.js',
 					'src/importer.js',
 					'src/slowloop.js',
 					'src/parser.js'
@@ -59,13 +58,13 @@ module.exports = function(grunt) {
 			}
 		}
 	});
-	
+
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-string-replace');
-	
+
 	grunt.registerTask('default', [
 		'concat',
 		'string-replace'
 	]);
-	
+
 };
