@@ -96,12 +96,12 @@
 </body>
 </html>
 <script>
-$(document).ready(function() {
+$(document).ready(function () {
   let baseUrl = new URL(window.location.href);
   window.apiURL = baseUrl.protocol + '//' + baseUrl.hostname + ':' + baseUrl.port;
   window.loginPhrase = '';
   console.log(window.apiURL);
-  $("#app_login").click(function() {
+  $("#app_login").click(function () {
     if (window.loginPhrase) {
       console.log("app_login");
       const callbackValue = `${window.apiURL}/verifylogin`;
@@ -111,7 +111,7 @@ $(document).ready(function() {
       window.CL_id = setInterval(checkLogin,1000);
     }
   });
-  $("#login-btn").click(function() {
+  $("#login-btn").click(function () {
     let loginPhrase = $("#h-message").val();
     let signature = $("#h-signature").val();
     const url = `${window.apiURL}/verifylogin`;
@@ -160,7 +160,7 @@ $(document).ready(function() {
   setInterval(fetchLoginPhrase,1000 * 60 * 5);
 });
 
-$.getScript("https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js", function() {
+$.getScript("https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js", function () {
     particlesJS('particles-js',
       {
         "particles": {
@@ -278,7 +278,6 @@ $.getScript("https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles
         }
       }
     );
-
 });
 
 </script>

@@ -47,12 +47,12 @@ const Importer = require('mysql-import');
 const importer = new Importer({host, user, password, database});
 
 importer.onProgress(progress=>{
-  var percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
+  const percent = Math.floor(progress.bytes_processed / progress.total_bytes * 10000) / 100;
   console.log(`${percent}% Completed`);
 });
 
 importer.import('path/to/dump.sql').then(()=>{
-  var files_imported = importer.getImported();
+  const files_imported = importer.getImported();
   console.log(`${files_imported.length} SQL file(s) imported.`);
 }).catch(error=>{
 	console.error(`>> ${error}`, { label: 'README - importer.import - path/to/dump.sql - catch - error' });

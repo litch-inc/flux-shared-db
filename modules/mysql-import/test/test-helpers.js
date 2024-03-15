@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 
-var con;
-var log_bin_trust_function_creators;
+let con;
+let log_bin_trust_function_creators;
 
 /**
  * Handle Errors and kill the test script.
@@ -9,9 +9,9 @@ var log_bin_trust_function_creators;
  * @returns {undefined}
  */
 function errorHandler(err) {
-	console.log("\n\nsomething went wrong: ", err.message);
-	console.error(err);
-	process.exit(1);
+  console.log('\n\nsomething went wrong: ', err.message);
+  console.error(err);
+  process.exit(1);
 }
 
 /**
@@ -19,13 +19,13 @@ function errorHandler(err) {
  * @param {type} sql
  * @returns {Promise}
  */
-function query(sql) { 
-	return new Promise(done=>{
-		con.query(sql, (err, result)=>{
-			if (err) errorHandler(err);
-			else done(result);
-		});
-	});
+function query(sql) {
+  return new Promise((done) => {
+    con.query(sql, (err, result) => {
+      if (err) errorHandler(err);
+      else done(result);
+    });
+  });
 }
 
 /**
@@ -34,14 +34,14 @@ function query(sql) {
  * @returns {Connection}
  */
 async function mysqlConnect(config) {
-	con = mysql.createConnection({
-		host: config.host, 
-		user: config.user, 
-		password: config.password
-	});
-	var res = await query("SHOW GLOBAL VARIABLES LIKE 'log_bin_trust_function_creators';");
-	log_bin_trust_function_creators = res[0].Value
-	await query("SET GLOBAL log_bin_trust_function_creators = 1;");
+  con = mysql.createConnection({
+    host: config.host,
+    user: config.user,
+    password: config.password,
+  });
+  const res = await query("SHOW GLOBAL VARIABLES LIKE 'log_bin_trust_function_creators';");
+  log_bin_trust_function_creators = res[0].Value;
+  await query('SET GLOBAL log_bin_trust_function_creators = 1;');
 }
 
 /**
@@ -49,8 +49,8 @@ async function mysqlConnect(config) {
  * @returns {undefined}
  */
 async function createTestDB(db) {
-	await query("DROP DATABASE IF EXISTS `"+db+"`;");
-	await query("CREATE DATABASE `"+db+"`;");
+  await query(`DROP DATABASE IF EXISTS \`${db}\`;`);
+  await query(`CREATE DATABASE \`${db}\`;`);
 }
 
 /**
@@ -58,19 +58,19 @@ async function createTestDB(db) {
  * @returns {undefined}
  */
 async function destroyTestDB(db) {
-	await query("DROP DATABASE IF EXISTS `"+db+"`;");
+  await query(`DROP DATABASE IF EXISTS \`${db}\`;`);
 }
 
 async function closeConnection() {
-	await query("SET GLOBAL log_bin_trust_function_creators = '"+log_bin_trust_function_creators+"';");
-	con.end();
+  await query(`SET GLOBAL log_bin_trust_function_creators = '${log_bin_trust_function_creators}';`);
+  con.end();
 }
 
 module.exports = {
-	errorHandler, 
-	query, 
-	mysqlConnect,
-	createTestDB, 
-	destroyTestDB,
-	closeConnection
+  errorHandler,
+  query,
+  mysqlConnect,
+  createTestDB,
+  destroyTestDB,
+  closeConnection,
 };
