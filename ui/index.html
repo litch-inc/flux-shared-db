@@ -298,7 +298,7 @@
     $('.menu-link.active').removeClass('active');
     $(`*[data-page="${activePage}"` ).addClass('active');
     $('#' + activePage).removeClass('d-none');
-    $('.menu-link').click(function() {
+    $('.menu-link').click(function () {
       if (window.lock) return;
       let newPage = $(this).data('page');
       console.log(newPage);
@@ -310,7 +310,7 @@
       startPage(newPage, apiURL);
     });
 
-    $('#tm-rewind').click(function() {
+    $('#tm-rewind').click(function () {
       let seq = $(this).data('seq');
       if (seq) {
         $('#confirm-modal').modal('show');
@@ -320,12 +320,12 @@
       }
     });
 
-    $('#btn-upload-backup').click(function() {
+    $('#btn-upload-backup').click(function () {
       $('#upload-modal').modal('show');
       uploadStatus.textContent = 'Please select an SQL file.';
     });
 
-    $('#uploadButton').click(async function() {
+    $('#uploadButton').click(async function () {
       const fileInput = document.getElementById('sqlFile');
       const sqlFile = fileInput.files[0];
 
@@ -350,14 +350,14 @@
       }
     });
 
-    $('#confirm-modal .btn-dark').click(function() {
+    $('#confirm-modal .btn-dark').click(function () {
       let callback = document.getElementById("confirm-modal").getAttribute('data-callback');
       let param = document.getElementById("confirm-modal").getAttribute('data-param');
       window[callback](param);
       $('#confirm-modal').modal('hide');
     });
 
-    $('#logout-btn').click(function() {
+    $('#logout-btn').click(function ) {
       $.ajax({
       type: 'get', url: window.apiURL + `/logout`,
       success: function (data, status, xhr) {
@@ -366,7 +366,7 @@
       }
     });
     });
-    $('#btn-generate-backup').click(async function() {
+    $('#btn-generate-backup').click(async function () {
       console.log(window.generatingbackup);
       if (!window.generatingbackup) {
         window.generatingbackup = true;
@@ -394,7 +394,7 @@
             onSelect: function (date , formattedDate, datepicker) {
               let d = new Date(date);
               //console.log(d.getTimezoneOffset() );
-              var timestamp = Math.floor(d.getTime());
+              const timestamp = Math.floor(d.getTime());
               $.ajax({
                   type: 'GET', dataType:"json", url: window.apiURL + `/getLogsByTime?starttime=${timestamp}&length=86400000`,
                   success: function (data, status, xhr) {
@@ -492,10 +492,10 @@
     if (window.lock) return;
     e = e || window.event;
     console.log(e);
-    var target = e.target || e.srcElement;
+    const target = e.target || e.srcElement;
     $('.query').removeClass('selected');
     target.classList.add("selected");
-    var seq = target.getAttribute('data-seq');
+    const seq = target.getAttribute('data-seq');
     $('#tm-rewind').data('seq', seq);
     console.log(seq);
     document.getElementById("tm-rewind").setAttribute("data-seq", seq);
@@ -506,10 +506,10 @@
     e.stopPropagation();
     e = e || window.event;
     console.log(e);
-    var target = e.target || e.srcElement;
+    const target = e.target || e.srcElement;
     $('.query').removeClass('selected');
     target.parentElement.classList.add("selected");
-    var seq = target.parentElement.getAttribute('data-seq');
+    const seq = target.parentElement.getAttribute('data-seq');
     console.log(seq);
     document.getElementById("tm-rewind").setAttribute("data-seq", seq);
   }
@@ -538,8 +538,8 @@
   }
   function deleteBUFile(e) {
     e = e || window.event;
-    var target = e.target || e.srcElement;
-    var filename = target.getAttribute('data-filename');
+    const target = e.target || e.srcElement;
+    const filename = target.getAttribute('data-filename');
     console.log(filename);
     $('#confirm-modal').modal('show');
     $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to delete this file?<br><b>${filename}.sql</b></span>`);
@@ -554,9 +554,9 @@
   function executeBUFile(e) {
     if (!window.import_in_progress) {
       e = e || window.event;
-      var target = e.target || e.srcElement;
+      const target = e.target || e.srcElement;
       window.execute_spinner = target.childNodes[2];
-      var filename = target.getAttribute('data-filename');
+      const filename = target.getAttribute('data-filename');
       console.log(filename);
       $('#confirm-modal').modal('show');
       $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to execute this file?<br><b>${filename}.sql</b></span></br>

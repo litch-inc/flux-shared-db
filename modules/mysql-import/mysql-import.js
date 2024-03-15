@@ -57,7 +57,7 @@ class Importer{
 	 * @returns {undefined}
 	 */
 	setEncoding(encoding) {
-		var supported_encodings = [
+		const supported_encodings = [
 			'utf8',
 			'ucs2',
 			'utf16le',
@@ -133,11 +133,11 @@ class Importer{
 	import(...input) {
 		return new Promise(async (resolve, reject)=>{
 			try {
-				var files = await this._getSQLFilePaths(...input);
+				const files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
 				this._current_file_no = 0;
 
-				var errorCopy = null;
+				const errorCopy = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
 					if (errorCopy) {
@@ -206,7 +206,7 @@ class Importer{
 	 */
 	_importSingleFile(fileObj, callback, serverSocket) {
 		return new Promise((resolve, reject)=>{
-			var parser = new queryParser({
+			const parser = new queryParser({
                 callback,
                 serverSocket,
 				db_connection: this._conn,
@@ -242,7 +242,7 @@ class Importer{
 				reject(error);
 			});
 
-			var readerStream = fs.createReadStream(fileObj.file);
+			const readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
 
 			/* istanbul ignore next */
@@ -266,7 +266,7 @@ class Importer{
 				resolve(this._conn);
 				return;
 			}
-			var connection = mysql.createConnection(this._connection_settings);
+			const connection = mysql.createConnection(this._connection_settings);
 			connection.connect(error=>{
 				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _connect - Promise - connection.connect - error' });
@@ -340,8 +340,8 @@ class Importer{
 	 */
 	_getSQLFilePaths(...paths) {
 		return new Promise(async (resolve, reject)=>{
-			var full_paths = [];
-			var errorCopy = null;
+			const full_paths = [];
+			const errorCopy = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next)=>{
 				if (errorCopy) {
@@ -350,7 +350,7 @@ class Importer{
 				}
 				try {
 					await this._fileExists(filepath);
-					var stat = await this._statFile(filepath);
+					const stat = await this._statFile(filepath);
 					if (stat.isFile()) {
 						if (filepath.toLowerCase().substring(filepath.length-4) === '.sql') {
 							full_paths.push({
@@ -360,9 +360,9 @@ class Importer{
 						}
 						next();
 					} else if (stat.isDirectory()) {
-						var more_paths = await this._readDir(filepath);
+						const more_paths = await this._readDir(filepath);
 						more_paths = more_paths.map(p=>path.join(filepath, p));
-						var sql_files = await this._getSQLFilePaths(...more_paths);
+						const sql_files = await this._getSQLFilePaths(...more_paths);
 						full_paths.push(...sql_files);
 						next();
 					} else {
@@ -465,9 +465,9 @@ class queryParser extends stream.Writable{
 
 	// handle piped data
 	async _write(chunk, enc, next) {
-		var query;
+		let query;
 		chunk = chunk.toString(this.encoding);
-		var errorCopy = null;
+		const errorCopy = null;
 
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
@@ -536,13 +536,13 @@ class queryParser extends stream.Writable{
 
 	// Check to see if a new delimiter is being assigned
 	checkNewDelimiter(char) {
-    var buffer_str = '';
+    const buffer_str = '';
     if (this.buffer.length < 10) buffer_str = this.buffer.join('').toLowerCase().trim();
 		if (buffer_str === 'delimiter' && !this.quoteType) {
 			this.seekingDelimiter = true;
 			this.buffer = [];
 		} else {
-			var isNewLine = char === "\n" || char === "\r";
+			const isNewLine = char === "\n" || char === "\r";
 			if (isNewLine && this.seekingDelimiter) {
 				this.seekingDelimiter = false;
 				this.delimiter = this.buffer.join('').trim();
@@ -553,7 +553,7 @@ class queryParser extends stream.Writable{
 
 	// Check if the current char is a quote
 	checkQuote(char) {
-		var isQuote = (char === '"' || char === "'") && !this.escaped;
+		const isQuote = (char === '"' || char === "'") && !this.escaped;
 		if (isQuote && this.quoteType === char) {
 			this.quoteType = false;
 		} else if (isQuote && !this.quoteType) {
@@ -568,8 +568,8 @@ class queryParser extends stream.Writable{
 			return false;
 		}
 
-		var query = false;
-		var demiliterFound = false;
+		const query = false;
+		const demiliterFound = false;
 		if (!this.quoteType && this.buffer.length >= this.delimiter.length) {
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
 		}

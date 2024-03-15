@@ -23,7 +23,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (10,'Updating Javascript 
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (11,'No idea why its not working.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (12,'How to call a function after another function (which has multiple conditional ajax requests)',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (13,'What are the best books, podcasts, websites or other resources to learn modern JavaScript as a beginner?',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (14,'Var x = function() {some code} vs var x = some code',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (14,'const x = function () {some code} vs const x = some code',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (15,'Make function run only once',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (16,'Why Caching is Important for React Users',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (17,'Javascripts Loops and Iterations Completely Explained 11 - [JavaScript C...',NULL);
@@ -367,7 +367,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (354,'\' vs \"',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (355,'Udacity vs Treehouse degrees?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (356,'Can someone explain how the computer reads this piece of code',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (357,'For Arrays what is the difference between Class methods and Prototype methods?',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (358,'\"list.forEach(function(item) {//code})\" vs \"for (item in list)\"?',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (358,'\"list.forEach(function (item) {//code})\" vs \"for (item in list)\"?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (359,'Noob \"how to\" question',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (360,'How do you concatenate JSX elements with string in React.js?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (361,'Help with Form Validation',NULL);
@@ -426,7 +426,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (413,'Best way to learn J
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (414,'Building a movie suggestion app that suggests movies based on the weather outside.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (415,'Help understanding Promise.all([]).then() behavior',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (416,'i tested 40+ \'blank new tab\' chrome tab extensions, and while they did basically the same things, the memory usage was different',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (417,'Function works when I set var = number, but when I set it equal to anything else, it NaN.',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (417,'Function works when I set const = number, but when I set it equal to anything else, it NaN.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (418,'Connecting to a Meteor window',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (419,'Problems manipulating json to a datatable using getJSON',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (420,'Can I write a program in Javascript that could run outside of a browser?',NULL);
@@ -686,7 +686,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (673,'React Native Tutori
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (674,'Street Fighter 2 car smackdown, in Vue.js',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (675,'Object.prototype.constructor. (...) .prototype.constructor I can type \'.prototype.constructor\' infinitely many times and output : function Object() { [native code] } is still the same. Why it doesn\'t ends? I was expecting null',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (676,'Are you looking for an efficient markdown editor? Please use Mark Text',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (677,'var iCanDoArrays=false',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (677,'const iCanDoArrays=false',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (678,'file.xhr?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (679,'Object of function? Which is best practice in this case?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (680,'JavaScript scope with simple walk through',NULL);
@@ -694,7 +694,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (681,'JSON for...in loop 
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (682,'New to testing and none of the tutorials/examples show testing a complex thunk.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (683,'New syntax?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (684,'[Help needed] Any ideas why this jquery code doesn\'t work?',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (685,'Help me on let vs var',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (685,'Help me on let vs const',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (686,'If you wanna practice on some real interview questions and check your answers give a try to this repo',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (687,'Trying to understand moving multiple elements.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (688,'Comparing an Array to an Array (scalar values only)',NULL);
@@ -750,7 +750,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (737,'My Review of freeCo
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (738,'Button vs Input',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (739,'Why won\'t my charts work?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (740,'Some Javascript questions...',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (741,'My \"senior\" dev told me to use var instead of let as let is old and depricated. Is it really so?',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (741,'My \"senior\" dev told me to use const instead of let as let is old and depricated. Is it really so?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (742,'Anyone wanna help help a JS boot camp student out?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (743,'Noob in the worst way, transitioning Army and headed to a Javascript coding immersive in a few weeks. Can you help me set up my Windows laptop?',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (744,'FCC, OP, or ?',NULL);
