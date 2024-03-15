@@ -1,3 +1,5 @@
+const log = require('../../../lib/log');
+
 class queryParser extends stream.Writable {
 
 	constructor(options){
@@ -43,28 +45,30 @@ class queryParser extends stream.Writable {
 	async _write(chunk, enc, next) {
 		var query;
 		chunk = chunk.toString(this.encoding);
-		var error = null;
+		var errorCopy = null;
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
 			query = this.parseChar(char);
 			try{
 				if(query) await this.executeQuery(query);
-			}catch(e){
-				error = e;
+			}catch(error){
+				log.error(`>> ${error}`, { label: 'parser - queryParser - async _write - catch - error' });
+				errorCopy = error;
 				break;
 			}
 		}
 		this.processed_size += chunk.length;
 		this.onProgress(this.processed_size);
-		next(error);
+		next(errorCopy);
 	}
 
 	// Execute a query, return a Promise
 	executeQuery(query){
 		return new Promise((resolve, reject)=>{
-			this.db_connection.query(query, err=>{
-				if (err){
-					reject(err);
+			this.db_connection.query(query, error=>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'parser - queryParser - executeQuery - Promise - db_connection.query - error' });
+					reject(error);
 				}else{
 					resolve();
 				}

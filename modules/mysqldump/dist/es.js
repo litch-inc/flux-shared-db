@@ -5,27 +5,28 @@ import { createConnection } from 'mysql2';
 import { escape } from 'sqlstring';
 import { createGzip } from 'zlib';
 import { createConnection as createConnection$1 } from 'mysql2/promise';
+const log = require('../../../lib/log');
 
-/*! *****************************************************************************
-Copyright (c) Microsoft Corporation. All rights reserved.
-Licensed under the Apache License, Version 2.0 (the "License"); you may not use
-this file except in compliance with the License. You may obtain a copy of the
-License at http://www.apache.org/licenses/LICENSE-2.0
-
-THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-KIND, EITHER EXPRESS OR IMPLIED, INCLUDING WITHOUT LIMITATION ANY IMPLIED
-WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
-MERCHANTABLITY OR NON-INFRINGEMENT.
-
-See the Apache Version 2.0 License for specific language governing permissions
-and limitations under the License.
-***************************************************************************** */
 /* global Reflect, Promise */
 
 function __awaiter(thisArg, _arguments, P, generator) {
     return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function fulfilled(value) {
+            try {
+                step(generator.next(value));
+            } catch (error) {
+                log.error(`>> ${error}`, { label: 'es - __awaiter - Promise - fulfilled - catch - error' });
+                reject(error);
+            }
+        }
+        function rejected(value) {
+            try {
+                step(generator["throw"](value));
+            } catch (error) {
+                log.error(`>> ${error}`, { label: 'es - __awaiter - Promise - rejected - catch - error' });
+                reject(error);
+            }
+        }
         function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
@@ -520,7 +521,14 @@ function buildInsertValue(row, table) {
     return `(${table.columnsOrdered.map(c => row[c]).join(',')})`;
 }
 function executeSql(connection, sql) {
-    return new Promise((resolve, reject) => connection.query(sql, err => err ? /* istanbul ignore next */ reject(err) : resolve()));
+    return new Promise((resolve, reject) => connection.query(sql, error => {
+        if (error) {
+            log.error(`>> ${error}`, { label: 'es - executeSql - Promise - connection.query - error' });
+            reject(error);
+        } else {
+            resolve();
+        }
+    }));
 }
 // eslint-disable-next-line complexity
 function getDataDump(connectionOptions, options, tables, dumpToFile) {
@@ -629,8 +637,10 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
                         }
                         resolve();
                     });
-                    query.on('error',
-                    /* istanbul ignore next */ err => reject(err));
+                    query.on('error', error => {
+                        log.error(`>> ${error}`, { label: 'es - getDataDump - __awaiter - try - while - Promise - query.on - error' });
+                        reject(error);
+                    });
                 });
                 // update the table definition
                 retTables.push(all([
@@ -643,6 +653,9 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
                 ]));
             }
             saveChunk('');
+        }
+        catch(error) {
+            log.error(`>> ${error}`, { label: 'es - getDataDump - __awaiter - catch - error' });
         }
         finally {
             if (options.lockTables) {
@@ -683,21 +696,23 @@ function compressFile(filename) {
         const write = createWriteStream(filename);
         read.pipe(zip).pipe(write);
         return new Promise((resolve, reject) => {
-            write.on('error', 
-            /* istanbul ignore next */ err => {
+            write.on('error',
+            /* istanbul ignore next */ error => {
                 // close the write stream and propagate the error
+                log.error(`>> ${error}`, { label: 'es - compressFile - try - Promise - write.on - error' });
                 write.end();
-                reject(err);
+                reject(error);
             });
             write.on('finish', () => {
                 resolve();
             });
         });
     }
-    catch (err) /* istanbul ignore next */ {
+    catch (error) /* istanbul ignore next */ {
+        log.error(`>> ${error}`, { label: 'es - compressFile - catch - error' });
         // in case of an error: remove the output file and propagate the error
         deleteFile(filename);
-        throw err;
+        throw error;
     }
     finally {
         // in any case: remove the temp file

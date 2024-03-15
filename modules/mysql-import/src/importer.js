@@ -1,9 +1,10 @@
+const log = require('../../../lib/log');
+
 /**
  * mysql-import - Importer class
  * @version {{ VERSION }}
  * https://github.com/Pamblam/mysql-import
  */
-
 class Importer{
 	/**
 	 * new Importer(settings)
@@ -62,9 +63,10 @@ class Importer{
 				resolve();
 				return;
 			}
-			this._conn.changeUser({database}, err=>{
-				if (err){
-					reject(err);
+			this._conn.changeUser({database}, error=>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'importer - Importer - use - Promise - _conn.changeUser - error' });
+					reject(error);
 				}else{
 					resolve();
 				}
@@ -115,25 +117,27 @@ class Importer{
 				this._total_files = files.length;
 				this._current_file_no = 0;
 
-				var error = null;
+				var errorCopy = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
-					if(error){
+					if(errorCopy){
 						next();
 						return;
 					}
 					this._importSingleFile(file).then(()=>{
 						next();
-					}).catch(err=>{
-						error = err;
+					}).catch(error=>{
+						log.error(`>> ${error}`, { label: 'importer - Importer - import - Promise - async - try - await slowLoop - _importSingleFile - catch - error' });
+						errorCopy = error;
 						next();
 					});
 				});
-				if(error) throw error;
+				if(errorCopy) throw errorCopy;
 				await this.disconnect();
 				resolve();
-			}catch(err){
-				reject(err);
+			}catch(error){
+				log.error(`>> ${error}`, { label: 'importer - Importer - import - Promise - async - catch - error' });
+				reject(error);
 			}
 		});
 	};
@@ -150,9 +154,10 @@ class Importer{
 				return;
 			}
 			if(graceful){
-				this._conn.end(err=>{
-					if(err){
-						reject(err);
+				this._conn.end(error=>{
+					if(error){
+						log.error(`>> ${error}`, { label: 'importer - Importer - disconnect - Promise - _conn.end - error' });
+						reject(error);
 						return;
 					}
 					this._conn = null;
@@ -193,11 +198,11 @@ class Importer{
 				}
 			});
 
-			const dumpCompletedCB = (err) => this._dumpCompletedCB({
+			const dumpCompletedCB = (error) => this._dumpCompletedCB({
 				total_files: this._total_files,
 				file_no: this._current_file_no,
 				file_path: fileObj.file,
-				error: err
+				error: error
 			});
 
 			parser.on('finish', ()=>{
@@ -207,18 +212,20 @@ class Importer{
 			});
 
 
-			parser.on('error', (err)=>{
-				dumpCompletedCB(err);
-				reject(err);
+			parser.on('error', (error)=>{
+				log.error(`>> ${error}`, { label: 'importer - Importer - _importSingleFile - Promise - parser.on - error' });
+				dumpCompletedCB(error);
+				reject(error);
 			});
 
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
 
 			/* istanbul ignore next */
-			readerStream.on('error', (err)=>{
-				dumpCompletedCB(err);
-				reject(err);
+			readerStream.on('error', (error)=>{
+				log.error(`>> ${error}`, { label: 'importer - Importer - _importSingleFile - Promise - readerStream.on - error' });
+				dumpCompletedCB(error);
+				reject(error);
 			});
 
 			readerStream.pipe(parser);
@@ -236,9 +243,10 @@ class Importer{
 				return;
 			}
 			var connection = mysql.createConnection(this._connection_settings);
-			connection.connect(err=>{
-				if (err){
-					reject(err);
+			connection.connect(error=>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'importer - Importer - _connect - Promise - connection.connect - error' });
+					reject(error);
 				}else{
 					this._conn = connection;
 					resolve();
@@ -254,9 +262,10 @@ class Importer{
 	 */
 	_fileExists(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.access(filepath, fs.F_OK, err=>{
-				if(err){
-					reject(err);
+			fs.access(filepath, fs.F_OK, error=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'importer - Importer - _fileExists - Promise - fs.access - error' });
+					reject(error);
 				}else{
 					resolve();
 				}
@@ -271,9 +280,10 @@ class Importer{
 	 */
 	_statFile(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.lstat(filepath, (err, stat)=>{
-				if(err){
-					reject(err);
+			fs.lstat(filepath, (error, stat)=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'importer - Importer - _statFile - Promise - fs.lstat - error' });
+					reject(error);
 				}else{
 					resolve(stat);
 				}
@@ -288,9 +298,10 @@ class Importer{
 	 */
 	_readDir(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.readdir(filepath, (err, files)=>{
-				if(err){
-					reject(err);
+			fs.readdir(filepath, (error, files)=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'importer - Importer - _readDir - Promise - fs.readdir - error' });
+					reject(error);
 				}else{
 					resolve(files);
 				}
@@ -306,10 +317,11 @@ class Importer{
 	_getSQLFilePaths(...paths){
 		return new Promise(async (resolve, reject)=>{
 			var full_paths = [];
-			var error = null;
+			var errorCopy = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next)=>{
-				if(error){
+				if(errorCopy){
+					log.error(`>> ${errorCopy}`, { label: 'importer - Importer - _getSQLFilePaths - Promise - async - await slowLoop - error' });
 					next();
 					return;
 				}
@@ -334,13 +346,13 @@ class Importer{
 						/* istanbul ignore next */
 						next();
 					}
-				}catch(err){
-					error = err;
+				}catch(error){
+					errorCopy = error;
 					next();
 				}
 			});
-			if(error){
-				reject(error);
+			if(errorCopy){
+				reject(errorCopy);
 			}else{
 				resolve(full_paths);
 			}

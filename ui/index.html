@@ -448,8 +448,8 @@
         $('#backup-file-list').html(html);
       }
       $('#backup-file-list-spinner').hide();
-    } catch (err){
-      console.log(err);
+    } catch (error){
+      console.error(`>> ${error}`, { label: 'index.html - script - getBackupFileList - catch - error' });
     }
   }
   async function generateClusterStats(){
@@ -469,15 +469,15 @@
               <td>${nodeStatus.data.masterIP}</td>
               <td>${nodeStatus.data.status}</td></tr>`;
             console.log(nodeStatus.data);
-          } catch (err){
-            console.log(err);
+          } catch (error){
+            console.error(`>> ${error}`, { label: 'index.html - script - generateClusterStats - try - catch - error' });
           }
         }
         $('#nodelist').html(html);
       }
       $('#nodelist-spinner').hide();
-    } catch (err){
-      console.log(err);
+    } catch (error){
+      console.error(`>> ${error}`, { label: 'index.html - script - generateClusterStats - catch - error' });
     }
   }
   function escapeHtml(unsafe)

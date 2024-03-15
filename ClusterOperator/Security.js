@@ -50,8 +50,9 @@ class Security {
       const utfMessage = message.toString();
       const cipher = createCipheriv('aes-256-cbc', key, iv);
       return cipher.update(utfMessage, 'utf-8', 'hex') + cipher.final('hex');
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static encrypt - catch - error' });
+
       return null;
     }
   }
@@ -60,8 +61,9 @@ class Security {
     try {
       const decipher = createDecipheriv('aes-256-cbc', key, iv);
       return decipher.update(message, 'hex') + decipher.final();
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static decrypt - catch - error' });
+
       return null;
     }
   }
@@ -71,8 +73,9 @@ class Security {
       const utfMessage = message.toString();
       const cipher = createCipheriv('aes-256-cbc', key, iv);
       return cipher.update(utfMessage, 'utf-8', 'hex') + cipher.final('hex');
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static encryptComm - catch - error' });
+
       return null;
     }
   }
@@ -81,8 +84,9 @@ class Security {
     try {
       const decipher = createDecipheriv('aes-256-cbc', key, iv);
       return decipher.update(message, 'hex') + decipher.final();
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static decryptComm - catch - error' });
+
       return null;
     }
   }
@@ -127,8 +131,9 @@ class Security {
   static publicDecrypt(key, buffer) {
     try {
       return publicDecrypt(key, buffer).toString('utf-8');
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static publicDecrypt - catch - error' });
+
       return null;
     }
   }
@@ -136,8 +141,9 @@ class Security {
   static publicEncrypt(key, buffer) {
     try {
       return publicEncrypt(key, buffer);
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static publicEncrypt - catch - error' });
+
       return null;
     }
   }
@@ -145,8 +151,9 @@ class Security {
   static privateDecrypt(buffer) {
     try {
       return privateDecrypt(this.#getPrivateKey(), buffer).toString('utf-8');
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static privateDecrypt - catch - error' });
+
       return null;
     }
   }
@@ -154,8 +161,9 @@ class Security {
   static privateEncrypt(buffer) {
     try {
       return privateEncrypt(this.#getPrivateKey(), buffer);
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Security - Security - static privateEncrypt - catch - error' });
+
       return null;
     }
   }

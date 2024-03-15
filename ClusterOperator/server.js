@@ -19,11 +19,11 @@ const queryCache = require('memory-cache');
 const Operator = require('./Operator');
 const BackLog = require('./Backlog');
 const IdService = require('./IdService');
-const log = require('../lib/log');
 const utill = require('../lib/utill');
 const config = require('./config');
 const Security = require('./Security');
 const fluxAPI = require('../lib/fluxAPI');
+const log = require('../lib/log');
 const SqlImporter = require('../modules/mysql-import');
 
 /**
@@ -70,7 +70,8 @@ function ensureObject(parameter) {
   let param;
   try {
     param = JSON.parse(parameter);
-  } catch (e) {
+  } catch (error) {
+    log.error(`>> ${error}`, { label: 'server - ensureObject - catch - error' });
     param = qs.parse(parameter);
   }
   if (typeof param !== 'object') {
@@ -320,11 +321,10 @@ function startUI() {
   app.get('/getbackupfile/:filename', async (req, res) => {
     if (authUser(req)) {
       const { filename } = req.params;
-      res.download(path.join(__dirname, `../dumps/${sanitize(filename)}.sql`), `${sanitize(filename)}.sql`, (err) => {
-        if (err) {
-          // Handle errors, such as file not found
-          res.status(404).send('File not found');
-        }
+      res.download(path.join(__dirname, `../dumps/${sanitize(filename)}.sql`), `${sanitize(filename)}.sql`, (error) => {
+        log.error(`>> ${error}`, { label: 'server - app.get - /getbackupfile/:filename - res.download - error' });
+        // Handle errors, such as file not found
+        res.status(404).send('File not found');
       });
     } else {
       res.status(403).send('Bad Request');
@@ -333,16 +333,18 @@ function startUI() {
   app.post('/upload-sql', async (req, res) => {
     if (authUser(req)) {
       if (!req.files || !req.files.sqlFile) {
-        return res.status(400).send('No file uploaded.');
+        res.status(400).send('No file uploaded.');
       }
       const { sqlFile } = req.files;
       const uploadPath = path.join(__dirname, '../dumps/', sqlFile.name); // Adjust the destination folder as needed
       // Move the uploaded .sql file to the specified location
-      sqlFile.mv(uploadPath, (err) => {
-        if (err) {
-          return res.status(500).send(`Error uploading file: ${err.message}`);
+      sqlFile.mv(uploadPath, (error) => {
+        log.error(`>> ${error}`, { label: 'server - app.post - /upload-sql - sqlFile.mv - error' });
+        if (error) {
+          res.status(500).send(`Error uploading file: ${error.message}`);
+        } else {
+          res.send('File uploaded successfully.');
         }
-        res.send('File uploaded successfully.');
       });
     } else {
       res.status(403).send('Bad Request');
@@ -387,14 +389,15 @@ function startUI() {
           log.info(`${percent}% Completed`, 'cyan');
         });
         importer.setEncoding('utf8');
-        await importer.import(`./dumps/${sanitize(filename)}.sql`).then(async () => {
-          const filesImported = importer.getImported();
-          log.info(`${filesImported.length} SQL file(s) imported.`);
-          res.send('OK');
-        }).catch((err) => {
-          res.status(500).send(JSON.stringify(err));
-          log.error(err);
-        });
+        await importer.import(`./dumps/${sanitize(filename)}.sql`)
+                      .then(async () => {
+                        const filesImported = importer.getImported();
+                        log.info(`${filesImported.length} SQL file(s) imported.`);
+                        res.send('OK');
+                      }).catch((error) => {
+                        log.error(`>> ${error}`, { label: 'server - app.post - /executebackup - importer.import - catch - error' });
+                        res.status(500).send(JSON.stringify(error));
+                      });
         res.end();
       }
     } else {
@@ -561,8 +564,8 @@ async function initServer() {
             log.info(`from DB : ${JSON.stringify(BLRecord)}`, 'red');
             try {
               socket.emit('query', BLRecord[0].query, BLRecord[0].seq, BLRecord[0].timestamp, connId);
-            } catch (err) {
-              log.error(JSON.stringify(err));
+            } catch (error) {
+              log.error(`>> ${error}`, { label: 'server - async function initServer - socket.on - askQuery - catch - error' });
             }
           }
         }

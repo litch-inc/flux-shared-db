@@ -88,8 +88,8 @@ class Operator {
         BackLog.UserDBClient.setDB(config.dbInitDB);
         log.info(`${config.dbInitDB} database created on local DB.`);
         await ConnectionPool.init({ numberOfConnections: 10, maxConnections: 100, db: config.dbInitDB });
-      } catch (err) {
-        log.info(err);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'Operator - Operator - static async initLocalDB - catch - error' });
       }
     }
   }
@@ -110,8 +110,8 @@ class Operator {
       try {
         this.masterWSConn.removeAllListeners();
         this.masterWSConn.disconnect();
-      } catch (err) {
-        log.error(err);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'Operator - Operator - static initMasterConnection - catch - error' });
       }
     }
     log.info(`master node: ${this.masterNode}`);
@@ -141,8 +141,8 @@ class Operator {
             } else {
               await fluxAPI.updateKey(Security.encryptComm(`N${this.myIP}`), Security.encryptComm(`${Security.getKey()}:${Security.getIV()}`), this.masterWSConn);
             }
-          } catch (err) {
-            log.error(err);
+          } catch (error) {
+            log.error(`>> ${error}`, { label: 'Operator - Operator - static initMasterConnection - try - catch - error' });
           }
 
           this.syncLocalDB();
@@ -238,9 +238,9 @@ class Operator {
             this.status = tempStatus;
           }
         });
-      } catch (e) {
-        log.error(e);
+      } catch (error) {
         this.masterWSConn.removeAllListeners();
+        log.error(`>> ${error}`, { label: 'Operator - Operator - static initMasterConnection - catch - error' });
       }
     }
   }
@@ -275,8 +275,8 @@ class Operator {
 
         log.info(`Started mysql server on port ${config.externalDBPort}`);
       }
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static initInBoundConnections - catch - error' });
     }
   }
 
@@ -311,8 +311,8 @@ class Operator {
       }
       if (this.appIPList.includes(remoteIp)) return true;
       log.info(`DB connection rejected from ${remoteIp}`);
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static handleAuthorize - catch - error' });
     }
     return false;
   }
@@ -374,8 +374,8 @@ class Operator {
         }
       }
       return null;
-    } catch (e) {
-      log.error(JSON.stringify(e));
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static async rollBack - catch - error' });
       return null;
     }
   }
@@ -483,8 +483,8 @@ class Operator {
           this.sendError({ message: 'Unknown Command' });
           break;
       }
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static async handleCommand - catch - error' });
     }
   }
 
@@ -503,8 +503,8 @@ class Operator {
           BackLog.pushKey(key, keys[key]);
           Operator.keys[key] = keys[key];
         }
-      } catch (err) {
-        log.error(err);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'Operator - Operator - static async syncLocalDB - catch - error' });
       }
       let masterSN = BackLog.sequenceNumber + 1;
       let copyBuffer = false;
@@ -526,8 +526,8 @@ class Operator {
           let percent = Math.round(((index + response.records.length) / masterSN) * 1000);
           if (masterSN === 0) percent = 0;
           log.info(`sync backlog from ${index} to ${index + response.records.length} - [${'='.repeat(Math.floor(percent / 50))}>${'-'.repeat(Math.floor((1000 - percent) / 50))}] %${percent / 10}`, 'cyan');
-        } catch (err) {
-          log.error(err);
+        } catch (error) {
+          log.error(`>> ${error}`, { label: 'Operator - Operator - static async syncLocalDB - while - catch - error' });
         }
       }
       log.info(`sync finished, moving remaining records from backlog, copyBuffer:${copyBuffer}`, 'cyan');
@@ -617,8 +617,8 @@ class Operator {
         await timer.setTimeout(15000);
         await this.updateAppInfo();
       }
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static async updateAppInfo - catch - error' });
     }
   }
 
@@ -679,8 +679,8 @@ class Operator {
         this.ghosted = false;
       }
       this.connectionDrops = 0;
-    } catch (err) {
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static async doHealthCheck - catch - error' });
     }
   }
 
@@ -765,9 +765,9 @@ class Operator {
         return this.masterNode;
       }
       log.info('DB_APPNAME environment variabele is not defined.');
-    } catch (err) {
-      log.info('error while finding master');
-      log.error(err);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Operator - Operator - static async findMaster - catch - error' });
+
       return this.findMaster();
     }
     return null;
