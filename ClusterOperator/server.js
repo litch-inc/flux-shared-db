@@ -234,7 +234,7 @@ function startUI() {
     if (authUser(req)) {
       const { starttime } = req.query;
       const { length } = req.query;
-      res.send(await BackLog.getLogsByTime(starttime, length));
+      res.send(BackLog.getLogsByTime(starttime, length));
       res.end();
     } else {
       res.status(403).send('Bad Request');
@@ -527,12 +527,12 @@ async function initServer() {
         callback({ status: 'success', message: utill.convertIP(socket.handshake.address) });
       });
       socket.on('getBackLog', async (start, callback) => {
-        const records = await BackLog.getLogs(start, 200);
+        const records = BackLog.getLogs(start, 200);
         callback({ status: Operator.status, sequenceNumber: BackLog.sequenceNumber, records });
       });
       socket.on('writeQuery', async (query, connId, callback) => {
         log.info(`writeQuery from ${utill.convertIP(socket.handshake.address)}:${connId}`);
-        const result = await BackLog.pushQuery(query);
+        const result = BackLog.pushQuery(query);
         // log.info(`forwarding query to slaves: ${JSON.stringify(result)}`);
         socket.broadcast.emit('query', query, result[1], result[2], false);
         socket.emit('query', query, result[1], result[2], connId);
