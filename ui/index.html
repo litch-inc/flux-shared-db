@@ -130,7 +130,7 @@
   <div class="container-fluid d-none mt-3" id="time-machine">
     <div class="card">
       <div class="card-header">
-      <h3 class="m-0"><i class="fas fa-history"></i> Point-in-time Recovery</h3>
+      <h3 class="m-0"><i class="fas fa-history"></i>Point-in-time Recovery</h3>
       </div>
       <div class="card-body">
         <div style="overflow:hidden;">
@@ -147,7 +147,7 @@
                   </div>
                   <div class="col-xxl-2 col-xl-12">
                     <p class="text-secondary fs-5">3. Rewind</p>
-                    <button type="button" class="btn btn-dark" id="tm-rewind"><i class="fas fa-history"></i> Rewind Database</button>
+                    <button type="button" class="btn btn-dark" id="tm-rewind"><i class="fas fa-history"></i>Rewind Database</button>
                     <p class="text-secondary fs-7 mt-2">Caution! this action is irreversible and will permanently rewind your database to the selected date-time. All rewind points after the selected date will be removed.</p>
                     <div class="d-none" id="tm-progress">
                       <div class="spinner-border" style="width: 1rem; height: 1rem; border: 0.2em solid #000; border-right-color: transparent;" role="status">
@@ -156,7 +156,7 @@
                       <span>Rewind in proggress, Please wait...</span>
                     </div>
                     <div class="d-none" id="tm-progress-done">
-                      <span><i class="fas fa-check-double text-success"></i> Rewind Finished</span>
+                      <span><i class="fas fa-check-double text-success"></i>Rewind Finished</span>
                     </div>
                   </div>
               </div>
@@ -357,7 +357,7 @@
       $('#confirm-modal').modal('hide');
     });
 
-    $('#logout-btn').click(function ) {
+    $('#logout-btn').click(function () {
       $.ajax({
       type: 'get', url: window.apiURL + `/logout`,
       success: function (data, status, xhr) {
