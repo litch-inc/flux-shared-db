@@ -54,8 +54,8 @@ importer.onProgress(progress=>{
 importer.import('path/to/dump.sql').then(()=>{
   var files_imported = importer.getImported();
   console.log(`${files_imported.length} SQL file(s) imported.`);
-}).catch(err=>{
-  console.error(err);
+}).catch(error=>{
+	console.error(`>> ${error}`, { label: 'README - importer.import - path/to/dump.sql - catch - error' });
 });
 ```
 ## Methods

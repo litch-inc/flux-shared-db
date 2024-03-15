@@ -73,7 +73,7 @@ class BackLog {
         } else {
           log.info('Backlog buffer table already exists, moving on...');
         }
-        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables 
+        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
           WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbOptions}'`);
         if (tableList.length === 0) {
           log.info('Backlog options table not defined yet, creating options table...');
@@ -83,8 +83,8 @@ class BackLog {
         }
         log.info(`Last Seq No: ${this.sequenceNumber}`);
       }
-    } catch (e) {
-      log.error(`Error creating backlog: ${e}`);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async createBacklog - catch - error' });
     }
   }
 
@@ -98,7 +98,7 @@ class BackLog {
     // eslint-disable-next-line no-param-reassign
     if (timestamp === undefined) timestamp = Date.now();
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
     }
     try {
@@ -143,10 +143,9 @@ class BackLog {
           return [result, seqForThis, timestamp];
         }
       }
-    } catch (e) {
+    } catch (error) {
+      log.error(`>> ${error}, ${query}, ${seq}`, { label: 'Backlog - BackLog - static async pushQuery - catch - error' });
       this.writeLock = false;
-      log.error(`error executing query, ${query}, ${seq}`);
-      log.error(e);
     }
     return [];
   }
@@ -159,7 +158,7 @@ class BackLog {
   */
   static async getLogs(startFrom, pageSize) {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
     }
     try {
@@ -169,8 +168,8 @@ class BackLog {
         log.info(`sending backlog records ${startFrom},${pageSize}, records: ${trimedRecords.length}`);
         return trimedRecords;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getLogs - catch - error' });
     }
     return [];
   }
@@ -183,7 +182,7 @@ class BackLog {
   */
   static async getLogsByTime(startFrom, length) {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
     }
     try {
@@ -191,8 +190,8 @@ class BackLog {
         const totalRecords = await this.BLClient.execute(`SELECT seq, LEFT(query,10) as query, timestamp FROM ${config.dbBacklogCollection} WHERE timestamp >= ? AND timestamp < ? ORDER BY seq`, [startFrom, Number(startFrom) + Number(length)]);
         return totalRecords;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getLogsByTime - catch - error' });
     }
     return [];
   }
@@ -204,7 +203,7 @@ class BackLog {
   */
   static async getLog(index) {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
     }
     try {
@@ -213,8 +212,8 @@ class BackLog {
         // log.info(`backlog records ${startFrom},${pageSize}:${JSON.stringify(totalRecords)}`);
         return record;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getLog - catch - error' });
     }
     return [];
   }
@@ -225,7 +224,7 @@ class BackLog {
   */
   static async getDateRange() {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
     }
     try {
@@ -234,8 +233,8 @@ class BackLog {
         log.info(record);
         return record[0];
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getDateRange - catch - error' });
     }
     return [];
   }
@@ -246,7 +245,7 @@ class BackLog {
   */
   static async getTotalLogsCount() {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
     } else {
       try {
         if (config.dbType === 'mysql') {
@@ -254,8 +253,8 @@ class BackLog {
           log.info(`Total Records: ${JSON.stringify(totalRecords)}`);
           return totalRecords[0].total;
         }
-      } catch (e) {
-        log.error(e);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getTotalLogsCount - catch - error' });
       }
     }
     return 0;
@@ -267,7 +266,7 @@ class BackLog {
   */
   static async getLastSequenceNumber(buffer = false) {
     if (!this.BLClient) {
-      log.error('Backlog not created yet. Call createBacklog() first.');
+      log.warn('Backlog not created yet. Call createBacklog() first.');
     } else {
       try {
         if (config.dbType === 'mysql') {
@@ -279,8 +278,8 @@ class BackLog {
           }
           if (records.length) return records[0].seqNo;
         }
-      } catch (e) {
-        log.error(e);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getLastSequenceNumber - catch - error' });
       }
     }
     return 0;
@@ -309,10 +308,11 @@ class BackLog {
         await this.BLClient.query(`DELETE FROM ${config.dbBacklogCollection}`);
         this.sequenceNumber = 0;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async clearLogs - catch - error' });
+    } finally {
+      log.info('All backlog data removed successfully.');
     }
-    log.info('All backlog data removed successfully.');
   }
 
   /**
@@ -336,16 +336,16 @@ class BackLog {
           try {
             // eslint-disable-next-line no-await-in-loop, no-unused-vars
             const result = await this.UserDBClient.query(record.query);
-          } catch (e) {
-            log.error(e);
+          } catch (error) {
+            log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async rebuildDatabase - try - catch - error' });
           }
           // eslint-disable-next-line no-await-in-loop
         }
         await this.BLClient.execute('DELETE FROM backlog WHERE seq>?', [seqNo]);
         await this.clearBuffer();
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async rebuildDatabase - catch - error' });
     }
     this.buffer = [];
     log.info(`DB and backlog rolled back to ${seqNo}`);
@@ -361,8 +361,8 @@ class BackLog {
         await this.BLClient.query(`DROP DATABASE ${config.dbBacklog}`);
         this.sequenceNumber = 0;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async destroyBacklog - catch - error' });
     }
     log.info(`${config.dbBacklog} database and all it's data erased successfully.`);
   }
@@ -381,8 +381,8 @@ class BackLog {
         this.bufferSequenceNumber = 0;
         this.bufferStartSequenceNumber = 0;
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async clearBuffer - catch - error' });
     }
     this.buffer = [];
     log.info('All buffer data removed successfully.');
@@ -404,8 +404,8 @@ class BackLog {
         try {
           // eslint-disable-next-line no-await-in-loop
           await this.pushQuery(record.query, record.seq, record.timestamp);
-        } catch (e) {
-          log.error(e);
+        } catch (error) {
+          log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async moveBufferToBacklog - catch - error' });
         }
         // eslint-disable-next-line no-await-in-loop
         await this.BLClient.execute(`DELETE FROM ${config.dbBacklogBuffer} WHERE seq=?`, [record.seq]);
@@ -439,8 +439,8 @@ class BackLog {
           await this.BLClient.execute(`INSERT INTO ${config.dbOptions} (k, value) VALUES (?,?)`, [key, encryptedValue]);
         }
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async pushKey - catch - error' });
     }
     this.buffer = [];
     // log.info('Key pushed.');
@@ -461,8 +461,8 @@ class BackLog {
           return (decrypt) ? Security.encryptComm(Security.decrypt(records[0].value)) : records[0].value;
         }
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getKey - catch - error' });
     }
     return null;
   }
@@ -482,8 +482,8 @@ class BackLog {
           return true;
         }
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async removeKey - catch - error' });
     }
     return false;
   }
@@ -504,8 +504,8 @@ class BackLog {
           keys[record.k] = Security.encryptComm(Security.decrypt(record.value));
         }
       }
-    } catch (e) {
-      log.error(e);
+    } catch (error) {
+      log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async getAllKeys - catch - error' });
     }
     return keys;
   }

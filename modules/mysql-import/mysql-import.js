@@ -14,6 +14,7 @@ const fs = require('fs');
 const path = require("path");
 const stream = require('stream');
 const BackLog = require('../../ClusterOperator/Backlog');
+const log = require('./log');
 
 
 /**
@@ -83,9 +84,10 @@ class Importer{
 				resolve();
 				return;
 			}
-			this._conn.changeUser({database}, err=>{
-				if (err){
-					reject(err);
+			this._conn.changeUser({database}, error =>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - use - Promise - _conn.changeUser - error' });
+					reject(error);
 				}else{
 					resolve();
 				}
@@ -131,30 +133,34 @@ class Importer{
 	import(...input){
 		return new Promise(async (resolve, reject)=>{
 			try{
-				// await this._connect();
 				var files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
 				this._current_file_no = 0;
 
-				var error = null;
+				var errorCopy = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
-					if(error){
+					if(errorCopy){
+						log.error(`>> ${errorCopy}`, { label: 'mysql-import - Importer - import - Promise - async - try - await slowLoop - error' });
 						next();
 						return;
 					}
-					this._importSingleFile(file, this.callback, this.serverSocket).then(()=>{
-						next();
-					}).catch(err=>{
-						error = err;
-						next();
-					});
+					this._importSingleFile(file, this.callback, this.serverSocket)
+					    .then(()=>{
+						  next();
+					    }).catch(error=>{
+							errorCopy = error;
+						  next();
+					    });
 				});
-				if(error) throw error;
-				// await this.disconnect();
+				if(error) {
+				  log.error(`>> ${error}`, { label: 'mysql-import - Importer - import - Promise - async - try - error' });
+				  throw error;
+				}
 				resolve();
-			}catch(err){
-				reject(err);
+			}catch(error){
+				log.error(`>> ${error}`, { label: 'mysql-import - Importer - import - Promise - async - catch - error' });
+				reject(error);
 			}
 		});
 	};
@@ -171,9 +177,10 @@ class Importer{
 				return;
 			}
 			if(graceful){
-				this._conn.end(err=>{
-					if(err){
-						reject(err);
+				this._conn.end(error=>{
+					if(error){
+						log.error(`>> ${error}`, { label: 'mysql-import - Importer - disconnect - Promise - _conn.end - error' });
+						reject(error);
 						return;
 					}
 					this._conn = null;
@@ -200,8 +207,8 @@ class Importer{
 	_importSingleFile(fileObj, callback, serverSocket){
 		return new Promise((resolve, reject)=>{
 			var parser = new queryParser({
-        callback,
-        serverSocket,
+                callback,
+                serverSocket,
 				db_connection: this._conn,
 				encoding: this._encoding,
 				onProgress: (progress) => {
@@ -215,11 +222,11 @@ class Importer{
 				}
 			});
 
-			const dumpCompletedCB = (err) => this._dumpCompletedCB({
+			const dumpCompletedCB = (error) => this._dumpCompletedCB({
 				total_files: this._total_files,
 				file_no: this._current_file_no,
 				file_path: fileObj.file,
-				error: err
+				error: error
 			});
 
 			parser.on('finish', ()=>{
@@ -229,18 +236,20 @@ class Importer{
 			});
 
 
-			parser.on('error', (err)=>{
-				dumpCompletedCB(err);
-				reject(err);
+			parser.on('error', (error)=>{
+				log.error(`>> ${error}`, { label: 'mysql-import - Importer - _importSingleFile - Promise - parser.on - error' });
+				dumpCompletedCB(error);
+				reject(error);
 			});
 
 			var readerStream = fs.createReadStream(fileObj.file);
 			readerStream.setEncoding(this._encoding);
 
 			/* istanbul ignore next */
-			readerStream.on('error', (err)=>{
-				dumpCompletedCB(err);
-				reject(err);
+			readerStream.on('error', (error)=>{
+				log.error(`>> ${error}`, { label: 'mysql-import - Importer - _importSingleFile - Promise - readerStream.on - error' });
+				dumpCompletedCB(error);
+				reject(error);
 			});
 
 			readerStream.pipe(parser);
@@ -258,9 +267,10 @@ class Importer{
 				return;
 			}
 			var connection = mysql.createConnection(this._connection_settings);
-			connection.connect(err=>{
-				if (err){
-					reject(err);
+			connection.connect(error=>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _connect - Promise - connection.connect - error' });
+					reject(error);
 				}else{
 					this._conn = connection;
 					resolve();
@@ -276,9 +286,10 @@ class Importer{
 	 */
 	_fileExists(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.access(filepath, fs.F_OK, err=>{
-				if(err){
-					reject(err);
+			fs.access(filepath, fs.F_OK, error=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _fileExists - Promise - fs.access - error' });
+					reject(error);
 				}else{
 					resolve();
 				}
@@ -293,9 +304,10 @@ class Importer{
 	 */
 	_statFile(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.lstat(filepath, (err, stat)=>{
-				if(err){
-					reject(err);
+			fs.lstat(filepath, (error, stat)=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _statFile - Promise - fs.lstat - error' });
+					reject(error);
 				}else{
 					resolve(stat);
 				}
@@ -310,9 +322,10 @@ class Importer{
 	 */
 	_readDir(filepath){
 		return new Promise((resolve, reject)=>{
-			fs.readdir(filepath, (err, files)=>{
-				if(err){
-					reject(err);
+			fs.readdir(filepath, (error, files)=>{
+				if(error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _readDir - Promise - fs.readdir - error' });
+					reject(error);
 				}else{
 					resolve(files);
 				}
@@ -328,10 +341,10 @@ class Importer{
 	_getSQLFilePaths(...paths){
 		return new Promise(async (resolve, reject)=>{
 			var full_paths = [];
-			var error = null;
+			var errorCopy = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next)=>{
-				if(error){
+				if(errorCopy){
 					next();
 					return;
 				}
@@ -356,13 +369,15 @@ class Importer{
 						/* istanbul ignore next */
 						next();
 					}
-				}catch(err){
-					error = err;
+				}catch(error){
+					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _getSQLFilePaths - Promise - async - await slowLoop - fs.readdir - catch - error' });
+					errorCopy = error;
 					next();
 				}
 			});
-			if(error){
-				reject(error);
+			if(errorCopy){
+				log.error(`>> ${errorCopy}`, { label: 'mysql-import - Importer - _getSQLFilePaths - Promise - async - error' });
+				reject(errorCopy);
 			}else{
 				resolve(full_paths);
 			}
@@ -452,15 +467,16 @@ class queryParser extends stream.Writable{
 	async _write(chunk, enc, next) {
 		var query;
 		chunk = chunk.toString(this.encoding);
-		var error = null;
+		var errorCopy = null;
 
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
 			query = this.parseChar(char);
 			try{
 				if(query) await this.executeQuery(query);
-			}catch(e){
-				error = e;
+			}catch(error){
+				log.error(`>> ${error}`, { label: 'mysql-import - queryParser - async _write - catch - error' });
+				errorCopy = error;
 				break;
 			}
 		}
@@ -468,7 +484,7 @@ class queryParser extends stream.Writable{
 		this.processed_size += chunk.length;
     //console.log(`processed ${this.processed_size}`);
 		this.onProgress(this.processed_size);
-		next(error);
+		next(errorCopy);
 	}
 
 	// Execute a query, return a Promise
@@ -479,9 +495,10 @@ class queryParser extends stream.Writable{
       return await this.executeCallback(query, false, false, this.serverSocket);
     }
 		return new Promise((resolve, reject)=>{
-			this.db_connection.query(query, err=>{
-				if (err){
-					reject(err);
+			this.db_connection.query(query, error =>{
+				if (error){
+					log.error(`>> ${error}`, { label: 'mysql-import - queryParser - async executeQuery - Promise - db_connection.query - error' });
+					reject(error);
 				}else{
 					resolve();
 				}

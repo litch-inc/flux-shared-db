@@ -30,10 +30,11 @@ class DBClient {
         stream.removeListener('error', reject);
         resolve(stream);
       });
-      stream.once('error', (err) => {
+      stream.once('error', (error) => {
+        log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async createStream - stream.once - error' });
         stream.removeListener('connection', resolve);
         stream.removeListener('data', resolve);
-        reject(err);
+        reject(error);
       });
     });
   }
@@ -102,19 +103,39 @@ class DBClient {
           await this.init();
           this.setDB(this.InitDB);
         }
+
+        const [rows, fields, error] = await this.connection.query(query);
+
         if (rawResult) {
-          const [rows, fields, err] = await this.connection.query(query);
-          if (err) log.error(err);
-          return [rows, fields, err];
+          if (error) {
+            if (fullQuery !== '') {
+              log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async query - try - rawResult - await this.connection.query - error' });
+            } else {
+              log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async query - try - rawResult - await this.connection.query - error' });
+            }
+          }
+
+          return [rows, fields, error];
         // eslint-disable-next-line no-else-return
         } else {
-          const [rows, err] = await this.connection.query(query);
-          if (err && err.toString().includes('Error')) log.error(`Error running query: ${err.toString()}, ${fullQuery}`, 'red');
+          if (error) {
+            if (fullQuery !== '') {
+              log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async query - try - await this.connection.query - error' });
+            } else {
+              log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async query - try - await this.connection.query - error' });
+            }
+          }
+
           return rows;
         }
-      } catch (err) {
-        if (err && err.toString().includes('Error')) log.error(`Error running query: ${err.toString()}, ${fullQuery}`, 'red');
-        return [null, null, err];
+      } catch (error) {
+        if (fullQuery !== '') {
+          log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async query - catch - error' });
+        } else {
+          log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async query - catch - error' });
+        }
+
+        return [null, null, error];
       }
     }
     return null;
@@ -131,13 +152,39 @@ class DBClient {
         if (!this.connected) {
           await this.init();
         }
-        const [rows, fields, err] = await this.connection.execute(query, params);
-        if (err && err.toString().includes('Error')) log.error(`Error executing query: ${err.toString()}, ${fullQuery}`, 'red');
-        if (rawResult) return [rows, fields, err];
-        return rows;
-      } catch (err) {
-        if (err && err.toString().includes('Error')) log.error(`Error executing query: ${err.toString()}, ${fullQuery}`, 'red');
-        return [null, null, err];
+
+        const [rows, fields, error] = await this.connection.execute(query, params);
+
+        if (rawResult) {
+          if (error) {
+            if (fullQuery !== '') {
+              log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async query - try - rawResult - await this.connection.query - error' });
+            } else {
+              log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async query - try - rawResult - await this.connection.query - error' });
+            }
+          }
+
+          return [rows, fields, error];
+        // eslint-disable-next-line no-else-return
+        } else {
+          if (error) {
+            if (fullQuery !== '') {
+              log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async query - try - await this.connection.query - error' });
+            } else {
+              log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async query - try - await this.connection.query - error' });
+            }
+          }
+
+          return rows;
+        }
+      } catch (error) {
+        if (fullQuery !== '') {
+          log.error(`>> ${error}, ${fullQuery}`, { label: 'ClusterOperator - DBClient - async execute - catch - error' });
+        } else {
+          log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async quexecutery - catch - error' });
+        }
+
+        return [null, null, error];
       }
     }
     return null;
@@ -151,8 +198,8 @@ class DBClient {
     if (config.dbType === 'mysql') {
       try {
         await this.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
-      } catch (err) {
-        log.info(`DB ${dbName} exists`);
+      } catch (error) {
+        log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async createDB - catch - error' });
       }
     }
     return null;
@@ -166,13 +213,12 @@ class DBClient {
     if (config.dbType === 'mysql') {
       this.InitDB = dbName;
       // log.info(`seting db to ${dbName}`);
-      this.connection.changeUser({
-        database: dbName,
-      }, (err) => {
-        if (err) {
-          // console.log('Error changing database', err);
+      this.connection.changeUser(
+        { database: dbName },
+        (error) => {
+          log.error(`>> ${error}`, { label: 'ClusterOperator - DBClient - async setDB - this.connection.changeUser - error' });
         }
-      });
+      );
     }
   }
 
@@ -193,11 +239,13 @@ exports.createClient = async function () {
     const cl = new DBClient();
     await cl.init();
     return cl;
-  } catch (err) {
-    log.info(JSON.stringify(err));
-    if (config.dbType === 'mysql') {
-      if (err.code === 'ER_ACCESS_DENIED_ERROR') return 'WRONG_KEY';
+  } catch (error) {
+    log.error(`>> ${error}`, { label: 'ClusterOperator - exports.createClient - catch - error' });
+    if ((config.dbType === 'mysql') && (error.code === 'ER_ACCESS_DENIED_ERROR')) {
+      return 'WRONG_KEY';
+      // eslint-disable-next-line no-else-return
+    } else {
+      return null;
     }
-    return null;
   }
 };
