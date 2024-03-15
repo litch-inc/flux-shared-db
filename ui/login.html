@@ -121,14 +121,14 @@ $(document).ready(function() {
       data: {message: loginPhrase, signature: signature},
       success: function (data, status, xhr) {
         console.log('data: ', data);
-        if(data==='OK'){
+        if (data==='OK') {
           window.location.replace(window.apiURL);
         }
       }
     })
 
   });
-  function fetchLoginPhrase(){
+  function fetchLoginPhrase() {
     $.ajax({
       url: `${window.apiURL}/loginphrase`,
       crossDomain: true,
@@ -140,7 +140,7 @@ $(document).ready(function() {
       }
     })
   }
-  function checkLogin(){
+  function checkLogin() {
     if (window.login_check_tries > 30) clearInterval(window.CL_id);
     window.login_check_tries ++;
     $.ajax({
@@ -150,7 +150,7 @@ $(document).ready(function() {
       type: "GET",
       success: function (data, status, xhr) {
         console.log(data);
-        if(data==='OK'){
+        if (data==='OK') {
           window.location.replace(window.apiURL);
         }
       }
@@ -160,7 +160,7 @@ $(document).ready(function() {
   setInterval(fetchLoginPhrase,1000 * 60 * 5);
 });
 
-$.getScript("https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js", function(){
+$.getScript("https://cdnjs.cloudflare.com/ajax/libs/particles.js/2.0.0/particles.min.js", function() {
     particlesJS('particles-js',
       {
         "particles": {

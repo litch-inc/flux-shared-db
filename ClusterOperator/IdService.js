@@ -7,7 +7,7 @@ const config = require('./config');
 const log = require('../lib/log');
 
 class IdService {
-  static loginPhrases = [this.generateLoginPhrase(), this.generateLoginPhrase()];
+  static loginPhrases = [IdService.generateLoginPhrase(), IdService.generateLoginPhrase()];
 
   static sessionExpireTime = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -83,7 +83,7 @@ class IdService {
   * [updateLoginPhrase]
   */
   static updateLoginPhrase() {
-    this.loginPhrases.push(this.generateLoginPhrase());
+    this.loginPhrases.push(IdService.generateLoginPhrase());
     this.loginPhrases.shift();
   }
 

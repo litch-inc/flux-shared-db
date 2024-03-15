@@ -59,7 +59,7 @@ class BackLog {
             ADD UNIQUE INDEX \`seq\`(\`seq\`);`);
         } else {
           log.info('Backlog table already exists, moving on...');
-          this.sequenceNumber = await this.getLastSequenceNumber();
+          this.sequenceNumber = await BackLog.getLastSequenceNumber();
         }
         tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
           WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogBuffer}'`);
@@ -342,7 +342,7 @@ class BackLog {
           // eslint-disable-next-line no-await-in-loop
         }
         await this.BLClient.execute('DELETE FROM backlog WHERE seq>?', [seqNo]);
-        await this.clearBuffer();
+        await BackLog.clearBuffer();
       }
     } catch (error) {
       log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async rebuildDatabase - catch - error' });
@@ -403,7 +403,7 @@ class BackLog {
         log.info(`copying seq(${record.seq}) from buffer`);
         try {
           // eslint-disable-next-line no-await-in-loop
-          await this.pushQuery(record.query, record.seq, record.timestamp);
+          await BackLog.pushQuery(record.query, record.seq, record.timestamp);
         } catch (error) {
           log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async moveBufferToBacklog - catch - error' });
         }

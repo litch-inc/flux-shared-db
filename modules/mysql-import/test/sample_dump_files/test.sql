@@ -23,7 +23,7 @@ INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (10,'Updating Javascript 
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (11,'No idea why its not working.',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (12,'How to call a function after another function (which has multiple conditional ajax requests)',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (13,'What are the best books, podcasts, websites or other resources to learn modern JavaScript as a beginner?',NULL);
-INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (14,'Var x = function(){some code} vs var x = some code',NULL);
+INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (14,'Var x = function() {some code} vs var x = some code',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (15,'Make function run only once',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (16,'Why Caching is Important for React Users',NULL);
 INSERT INTO `importtest` (`id`,`doc`,`classid`) VALUES (17,'Javascripts Loops and Iterations Completely Explained 11 - [JavaScript C...',NULL);

@@ -29,7 +29,7 @@ class Importer{
 	 * new Importer(settings)
 	 * @param {host, user, password[, database]} settings - login credentials
 	 */
-	constructor(settings){
+	constructor(settings) {
 		this._connection_settings = settings;
     this.callback = (settings.callback) ? settings.callback : null;
     this.serverSocket = (settings.serverSocket) ? settings.serverSocket : null;
@@ -46,7 +46,7 @@ class Importer{
 	 * Get an array of the imported files
 	 * @returns {Array}
 	 */
-	getImported(){
+	getImported() {
 		return this._imported.slice(0);
 	}
 
@@ -56,7 +56,7 @@ class Importer{
 	 * @throws {Error} - if unsupported encoding type.
 	 * @returns {undefined}
 	 */
-	setEncoding(encoding){
+	setEncoding(encoding) {
 		var supported_encodings = [
 			'utf8',
 			'ucs2',
@@ -66,7 +66,7 @@ class Importer{
 			'base64',
 			'hex'
 		];
-		if(!supported_encodings.includes(encoding)){
+		if (!supported_encodings.includes(encoding)) {
 			throw new Error("Unsupported encoding: "+encoding);
 		}
 		this._encoding = encoding;
@@ -77,18 +77,18 @@ class Importer{
 	 * @param string - database name
 	 * @returns {Promise}
 	 */
-	use(database){
+	use(database) {
 		return new Promise((resolve, reject)=>{
-			if(!this._conn){
+			if (!this._conn) {
 				this._connection_settings.database = database;
 				resolve();
 				return;
 			}
 			this._conn.changeUser({database}, error =>{
-				if (error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - use - Promise - _conn.changeUser - error' });
 					reject(error);
-				}else{
+				} else {
 					resolve();
 				}
 			});
@@ -106,8 +106,8 @@ class Importer{
 	 *			- file_path: The full path to the dump file.
 	 * @returns {undefined}
 	 */
-	onProgress(cb){
-		if(typeof cb !== 'function') return;
+	onProgress(cb) {
+		if (typeof cb !== 'function') return;
 		this._progressCB = cb;
 	}
 
@@ -120,8 +120,8 @@ class Importer{
 	 *			- file_path: The full path to the dump file.
 	 * @returns {undefined}
 	 */
-	onDumpCompleted(cb){
-		if(typeof cb !== 'function') return;
+	onDumpCompleted(cb) {
+		if (typeof cb !== 'function') return;
 		this._dumpCompletedCB = cb;
 	}
 
@@ -130,9 +130,9 @@ class Importer{
 	 * @param string|array input - files or paths to scan for .sql files
 	 * @returns {Promise}
 	 */
-	import(...input){
+	import(...input) {
 		return new Promise(async (resolve, reject)=>{
-			try{
+			try {
 				var files = await this._getSQLFilePaths(...input);
 				this._total_files = files.length;
 				this._current_file_no = 0;
@@ -140,7 +140,7 @@ class Importer{
 				var errorCopy = null;
 				await slowLoop(files, (file, index, next)=>{
 					this._current_file_no++;
-					if(errorCopy){
+					if (errorCopy) {
 						log.error(`>> ${errorCopy}`, { label: 'mysql-import - Importer - import - Promise - async - try - await slowLoop - error' });
 						next();
 						return;
@@ -153,12 +153,12 @@ class Importer{
 						  next();
 					    });
 				});
-				if(error) {
+				if (error) {
 				  log.error(`>> ${error}`, { label: 'mysql-import - Importer - import - Promise - async - try - error' });
 				  throw error;
 				}
 				resolve();
-			}catch(error){
+			} catch (error) {
 				log.error(`>> ${error}`, { label: 'mysql-import - Importer - import - Promise - async - catch - error' });
 				reject(error);
 			}
@@ -170,15 +170,15 @@ class Importer{
 	 * @param bool graceful - force close?
 	 * @returns {Promise}
 	 */
-	disconnect(graceful=true){
+	disconnect(graceful=true) {
 		return new Promise((resolve, reject)=>{
-			if(!this._conn){
+			if (!this._conn) {
 				resolve();
 				return;
 			}
-			if(graceful){
+			if (graceful) {
 				this._conn.end(error=>{
-					if(error){
+					if (error) {
 						log.error(`>> ${error}`, { label: 'mysql-import - Importer - disconnect - Promise - _conn.end - error' });
 						reject(error);
 						return;
@@ -186,7 +186,7 @@ class Importer{
 					this._conn = null;
 					resolve();
 				});
-			}else{
+			} else {
 				this._conn.destroy();
 				resolve();
 			}
@@ -204,7 +204,7 @@ class Importer{
 	 *		- size: The size of the file in bytes
 	 * @returns {Promise}
 	 */
-	_importSingleFile(fileObj, callback, serverSocket){
+	_importSingleFile(fileObj, callback, serverSocket) {
 		return new Promise((resolve, reject)=>{
 			var parser = new queryParser({
                 callback,
@@ -260,18 +260,18 @@ class Importer{
 	 * Connect to the mysql server
 	 * @returns {Promise}
 	 */
-	_connect(){
+	_connect() {
 		return new Promise((resolve, reject)=>{
-			if(this._conn){
+			if (this._conn) {
 				resolve(this._conn);
 				return;
 			}
 			var connection = mysql.createConnection(this._connection_settings);
 			connection.connect(error=>{
-				if (error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _connect - Promise - connection.connect - error' });
 					reject(error);
-				}else{
+				} else {
 					this._conn = connection;
 					resolve();
 				}
@@ -284,13 +284,13 @@ class Importer{
 	 * @param string filepath
 	 * @returns {Promise}
 	 */
-	_fileExists(filepath){
+	_fileExists(filepath) {
 		return new Promise((resolve, reject)=>{
 			fs.access(filepath, fs.F_OK, error=>{
-				if(error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _fileExists - Promise - fs.access - error' });
 					reject(error);
-				}else{
+				} else {
 					resolve();
 				}
 			});
@@ -302,13 +302,13 @@ class Importer{
 	 * @param string filepath
 	 * @returns {Promise}
 	 */
-	_statFile(filepath){
+	_statFile(filepath) {
 		return new Promise((resolve, reject)=>{
 			fs.lstat(filepath, (error, stat)=>{
-				if(error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _statFile - Promise - fs.lstat - error' });
 					reject(error);
-				}else{
+				} else {
 					resolve(stat);
 				}
 			});
@@ -320,13 +320,13 @@ class Importer{
 	 * @param string filepath
 	 * @returns {Promise}
 	 */
-	_readDir(filepath){
+	_readDir(filepath) {
 		return new Promise((resolve, reject)=>{
 			fs.readdir(filepath, (error, files)=>{
-				if(error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _readDir - Promise - fs.readdir - error' });
 					reject(error);
-				}else{
+				} else {
 					resolve(files);
 				}
 			});
@@ -338,47 +338,47 @@ class Importer{
 	 * @param strings|array paths
 	 * @returns {Promise}
 	 */
-	_getSQLFilePaths(...paths){
+	_getSQLFilePaths(...paths) {
 		return new Promise(async (resolve, reject)=>{
 			var full_paths = [];
 			var errorCopy = null;
 			paths = [].concat.apply([], paths); // flatten array of paths
 			await slowLoop(paths, async (filepath, index, next)=>{
-				if(errorCopy){
+				if (errorCopy) {
 					next();
 					return;
 				}
-				try{
+				try {
 					await this._fileExists(filepath);
 					var stat = await this._statFile(filepath);
-					if(stat.isFile()){
-						if(filepath.toLowerCase().substring(filepath.length-4) === '.sql'){
+					if (stat.isFile()) {
+						if (filepath.toLowerCase().substring(filepath.length-4) === '.sql') {
 							full_paths.push({
 								file: path.resolve(filepath),
 								size: stat.size
 							});
 						}
 						next();
-					}else if(stat.isDirectory()){
+					} else if (stat.isDirectory()) {
 						var more_paths = await this._readDir(filepath);
 						more_paths = more_paths.map(p=>path.join(filepath, p));
 						var sql_files = await this._getSQLFilePaths(...more_paths);
 						full_paths.push(...sql_files);
 						next();
-					}else{
+					} else {
 						/* istanbul ignore next */
 						next();
 					}
-				}catch(error){
+				} catch (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - Importer - _getSQLFilePaths - Promise - async - await slowLoop - fs.readdir - catch - error' });
 					errorCopy = error;
 					next();
 				}
 			});
-			if(errorCopy){
+			if (errorCopy) {
 				log.error(`>> ${errorCopy}`, { label: 'mysql-import - Importer - _getSQLFilePaths - Promise - async - error' });
 				reject(errorCopy);
-			}else{
+			} else {
 				resolve(full_paths);
 			}
 		});
@@ -409,7 +409,7 @@ module.exports = Importer;
 function slowLoop(items, loopBody) {
 	return new Promise(f => {
 		/* istanbul ignore next */
-		if(!items.length) return f();
+		if (!items.length) return f();
 		let done = arguments[2] || f;
 		let idx = arguments[3] || 0;
 		let cb = items[idx + 1] ? () => slowLoop(items, loopBody, done, idx + 1) : done;
@@ -420,7 +420,7 @@ function slowLoop(items, loopBody) {
 
 class queryParser extends stream.Writable{
 
-	constructor(options){
+	constructor(options) {
 		/* istanbul ignore next */
 		options = options || {};
 		super(options);
@@ -472,9 +472,9 @@ class queryParser extends stream.Writable{
 		for (let i = 0; i < chunk.length; i++) {
 			let char = chunk[i];
 			query = this.parseChar(char);
-			try{
-				if(query) await this.executeQuery(query);
-			}catch(error){
+			try {
+				if (query) await this.executeQuery(query);
+			} catch (error) {
 				log.error(`>> ${error}`, { label: 'mysql-import - queryParser - async _write - catch - error' });
 				errorCopy = error;
 				break;
@@ -488,18 +488,18 @@ class queryParser extends stream.Writable{
 	}
 
 	// Execute a query, return a Promise
-	 async executeQuery(query){
+	 async executeQuery(query) {
     console.log (query);
     console.log (this.executeCallback);
-    if (this.executeCallback){
+    if (this.executeCallback) {
       return await this.executeCallback(query, false, false, this.serverSocket);
     }
 		return new Promise((resolve, reject)=>{
 			this.db_connection.query(query, error =>{
-				if (error){
+				if (error) {
 					log.error(`>> ${error}`, { label: 'mysql-import - queryParser - async executeQuery - Promise - db_connection.query - error' });
 					reject(error);
-				}else{
+				} else {
 					resolve();
 				}
 			});
@@ -509,7 +509,7 @@ class queryParser extends stream.Writable{
 	// Parse the next char in the string
 	// return a full query if one is detected after parsing this char
 	// else return false.
-	parseChar(char){
+	parseChar(char) {
     this.checkEscapeChar();
     this.buffer.push(char);
     const startTime = performance.now();
@@ -525,25 +525,25 @@ class queryParser extends stream.Writable{
 
 	// Check if the current char has been escaped
 	// and update this.escaped
-	checkEscapeChar(){
-		if(!this.buffer.length) return;
-		if(this.buffer[this.buffer.length - 1] === "\\"){
+	checkEscapeChar() {
+		if (!this.buffer.length) return;
+		if (this.buffer[this.buffer.length - 1] === "\\") {
 			this.escaped = !this.escaped;
-		}else{
+		} else {
 			this.escaped = false;
 		}
 	}
 
 	// Check to see if a new delimiter is being assigned
-	checkNewDelimiter(char){
+	checkNewDelimiter(char) {
     var buffer_str = '';
     if (this.buffer.length < 10) buffer_str = this.buffer.join('').toLowerCase().trim();
-		if(buffer_str === 'delimiter' && !this.quoteType){
+		if (buffer_str === 'delimiter' && !this.quoteType) {
 			this.seekingDelimiter = true;
 			this.buffer = [];
-		}else{
+		} else {
 			var isNewLine = char === "\n" || char === "\r";
-			if(isNewLine && this.seekingDelimiter){
+			if (isNewLine && this.seekingDelimiter) {
 				this.seekingDelimiter = false;
 				this.delimiter = this.buffer.join('').trim();
 				this.buffer = [];
@@ -552,25 +552,25 @@ class queryParser extends stream.Writable{
 	}
 
 	// Check if the current char is a quote
-	checkQuote(char){
+	checkQuote(char) {
 		var isQuote = (char === '"' || char === "'") && !this.escaped;
-		if (isQuote && this.quoteType === char){
+		if (isQuote && this.quoteType === char) {
 			this.quoteType = false;
-		}else if(isQuote && !this.quoteType){
+		} else if (isQuote && !this.quoteType) {
 			this.quoteType = char;
 		}
 	}
 
 	// Check if we're at the end of the query
 	// return the query if so, else return false;
-	checkEndOfQuery(){
-		if(this.seekingDelimiter){
+	checkEndOfQuery() {
+		if (this.seekingDelimiter) {
 			return false;
 		}
 
 		var query = false;
 		var demiliterFound = false;
-		if(!this.quoteType && this.buffer.length >= this.delimiter.length){
+		if (!this.quoteType && this.buffer.length >= this.delimiter.length) {
 			demiliterFound = this.buffer.slice(-this.delimiter.length).join('') === this.delimiter;
 		}
 

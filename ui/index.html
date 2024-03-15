@@ -299,7 +299,7 @@
     $(`*[data-page="${activePage}"` ).addClass('active');
     $('#' + activePage).removeClass('d-none');
     $('.menu-link').click(function() {
-      if(window.lock) return;
+      if (window.lock) return;
       let newPage = $(this).data('page');
       console.log(newPage);
       $('#' + activePage).toggleClass('d-none');
@@ -362,13 +362,13 @@
       type: 'get', url: window.apiURL + `/logout`,
       success: function (data, status, xhr) {
         console.log(data);
-        if(data==='OK') window.location.replace(window.apiURL);
+        if (data === 'OK') window.location.replace(window.apiURL);
       }
     });
     });
     $('#btn-generate-backup').click(async function() {
       console.log(window.generatingbackup);
-      if(!window.generatingbackup){
+      if (!window.generatingbackup) {
         window.generatingbackup = true;
         const result = await axios.post(`${window.apiURL}/generatebackup`, { timeout: 2000 });
         await getBackupFileList();
@@ -377,9 +377,9 @@
     });
 
   }
-  async function startPage(page){
+  async function startPage(page) {
     console.log(page);
-    if(page === 'time-machine'){
+    if (page === 'time-machine') {
       $.ajax({
         type: 'GET', dataType:"json", url: window.apiURL + '/getLogDateRange',
         success: function (data, status, xhr) {
@@ -402,7 +402,7 @@
                     let points = 0;
                     $('.queries-tm').html(`<div class="query-h"><span class="q-text">Total <span id="total-records"></span> sessions found</span><span class="q-date">Date and Time</span></div>`);
                     for (let i = 0; i < data.length; i+=1) {
-                      if (data[i].query.toLowerCase().startsWith('set sess')){
+                      if (data[i].query.toLowerCase().startsWith('set sess')) {
                         points +=1;
                         let ops = 1;
                         while (i + 1 < data.length && !data[i + 1].query.toLowerCase().startsWith('set sess')) { i += 1; ops +=1 }
@@ -419,21 +419,21 @@
 
         }
       });
-    } else if(page === 'dashboard'){
+    } else if (page === 'dashboard') {
       generateClusterStats();
-    } else if(page === 'backup-restore'){
+    } else if (page === 'backup-restore') {
       getBackupFileList();
     }
   }
-  async function getBackupFileList(){
-    try{
+  async function getBackupFileList() {
+    try {
       $('#backup-file-list-spinner').show();
       const backups = await axios.get(`${window.apiURL}/listbackups`, { timeout: 2000 });
       console.log(backups.data);
-      if(Array.isArray(backups.data)){
+      if (Array.isArray(backups.data)) {
 
         let html = '';
-        for( let i = 0; i< backups.data.length; i += 1){
+        for ( let i = 0; i< backups.data.length; i += 1) {
           const fileName = backups.data[i].fileName.split('.')[0];
           html += `<tr><th scope="row">${i+1}</th>
             <td>${backups.data[i].fileName}</td>
@@ -448,20 +448,20 @@
         $('#backup-file-list').html(html);
       }
       $('#backup-file-list-spinner').hide();
-    } catch (error){
+    } catch (error) {
       console.error(`>> ${error}`, { label: 'index.html - script - getBackupFileList - catch - error' });
     }
   }
-  async function generateClusterStats(){
-    try{
+  async function generateClusterStats() {
+    try {
       $('#nodelist-spinner').show();
       const nodelist = await axios.get(`${window.apiURL}/nodelist`, { timeout: 2000 });
       console.log(nodelist.data);
-      if(Array.isArray(nodelist.data)){
+      if (Array.isArray(nodelist.data)) {
 
         let html = '';
-        for( let i = 0; i< nodelist.data.length; i += 1){
-          try{
+        for ( let i = 0; i< nodelist.data.length; i += 1) {
+          try {
             const nodeStatus = await axios.get(`http://${nodelist.data[i].ip}:${window.port}/status`, { timeout: 4000 });
             html += `<tr><th scope="row">${i+1}</th>
               <td>${nodelist.data[i].ip}</td>
@@ -469,19 +469,18 @@
               <td>${nodeStatus.data.masterIP}</td>
               <td>${nodeStatus.data.status}</td></tr>`;
             console.log(nodeStatus.data);
-          } catch (error){
+          } catch (error) {
             console.error(`>> ${error}`, { label: 'index.html - script - generateClusterStats - try - catch - error' });
           }
         }
         $('#nodelist').html(html);
       }
       $('#nodelist-spinner').hide();
-    } catch (error){
+    } catch (error) {
       console.error(`>> ${error}`, { label: 'index.html - script - generateClusterStats - catch - error' });
     }
   }
-  function escapeHtml(unsafe)
-  {
+  function escapeHtml(unsafe) {
       return unsafe
           .replace(/&/g, "&amp;")
           .replace(/</g, "&lt;")
@@ -490,7 +489,7 @@
           .replace(/'/g, "&#039;");
   }
   function querySelect(e) {
-    if(window.lock) return;
+    if (window.lock) return;
     e = e || window.event;
     console.log(e);
     var target = e.target || e.srcElement;
@@ -502,7 +501,7 @@
     document.getElementById("tm-rewind").setAttribute("data-seq", seq);
   }
   function querySelectP(e) {
-    if(window.lock) return;
+    if (window.lock) return;
     e.preventDefault();
     e.stopPropagation();
     e = e || window.event;
@@ -548,12 +547,12 @@
     document.getElementById("confirm-modal").setAttribute('data-param', filename);
 
   }
-  async function deleteFile(filename){
+  async function deleteFile(filename) {
     const result = await axios.post(`${window.apiURL}/deletebackup`, { filename }, { timeout: 2000 });
     await getBackupFileList();
   }
   function executeBUFile(e) {
-    if(!window.import_in_progress){
+    if (!window.import_in_progress) {
       e = e || window.event;
       var target = e.target || e.srcElement;
       window.execute_spinner = target.childNodes[2];
@@ -567,7 +566,7 @@
       $('#modal-spinner').hide();
     }
   }
-  async function executeFile(filename){
+  async function executeFile(filename) {
     $('#modal-spinner').show();
     window.execute_spinner.classList.remove('d-none');
     window.import_in_progress = true;
