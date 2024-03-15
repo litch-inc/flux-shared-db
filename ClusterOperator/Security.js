@@ -37,14 +37,14 @@ class Security {
     this.#securityKey = randomBytes(32);
     this.#commAESIv = randomBytes(16);
     this.#commAESKey = randomBytes(32);
-    this.#key = this.encrypt(config.dbPass, this.#securityKey, this.#initVector);
+    this.#key = Security.encrypt(config.dbPass, this.#securityKey, this.#initVector);
     this.publicKey = publicKey;
-    this.#privateKey = this.encrypt(privateKey, this.#securityKey, this.#initVector);
+    this.#privateKey = Security.encrypt(privateKey, this.#securityKey, this.#initVector);
     privateKey = null;
     publicKey = null;
   }
 
-  static encrypt(message, key = Buffer.from(this.getKey(), 'hex'), iv = this.#initVector) {
+  static encrypt(message, key = Buffer.from(Security.getKey(), 'hex'), iv = this.#initVector) {
     try {
       // console.log(message);
       const utfMessage = message.toString();
@@ -57,7 +57,7 @@ class Security {
     }
   }
 
-  static decrypt(message, key = Buffer.from(this.getKey(), 'hex'), iv = this.#initVector) {
+  static decrypt(message, key = Buffer.from(Security.getKey(), 'hex'), iv = this.#initVector) {
     try {
       const decipher = createDecipheriv('aes-256-cbc', key, iv);
       return decipher.update(message, 'hex') + decipher.final();
@@ -92,7 +92,7 @@ class Security {
   }
 
   static getKey() {
-    return this.decrypt(this.#key, this.#securityKey, this.#initVector);
+    return Security.decrypt(this.#key, this.#securityKey, this.#initVector);
   }
 
   static getIV() {
@@ -104,7 +104,7 @@ class Security {
   }
 
   static setKey(key) {
-    this.#key = this.encrypt(key, this.#securityKey, this.#initVector);
+    this.#key = Security.encrypt(key, this.#securityKey, this.#initVector);
   }
 
   static setIV(iv) {
@@ -125,7 +125,7 @@ class Security {
   }
 
   static #getPrivateKey() {
-    return this.decrypt(this.#privateKey, this.#securityKey, this.#initVector);
+    return Security.decrypt(this.#privateKey, this.#securityKey, this.#initVector);
   }
 
   static publicDecrypt(key, buffer) {
@@ -192,4 +192,5 @@ class Security {
     return { pemPrivateKey, pemCertificate };
   }
 }
+
 module.exports = Security;

@@ -18,7 +18,7 @@ var fs, MySQLImport, importer, start_time;
 
 describe('Running All Tests', ()=>{
 
-	before(async function(){
+	before(async function() {
 		
 		start_time = new Date();
 		
@@ -37,11 +37,11 @@ describe('Running All Tests', ()=>{
 			var filename = progress.file_path.split("/").pop();
 			var message = `\tFile ${progress.file_no} of ${progress.total_files}: `+
 					`processing ${filename} - ${percent}% Complete`;
-			if(process.stdout.isTTY){
+			if (process.stdout.isTTY) {
 				process.stdout.clearLine();
 				process.stdout.cursorTo(0);
 				process.stdout.write(message);
-			}else{
+			} else {
 				console.log(message);
 			}
 
@@ -50,18 +50,18 @@ describe('Running All Tests', ()=>{
 		importer.onDumpCompleted(status=>{
 			var filename = status.file_path.split("/").pop();
 			var message;
-			if(status.error){
+			if (status.error) {
 				message = `\tFile ${status.file_no} of ${status.total_files}: `+
 					`Was not processed.\n`;
-			}else{
+			} else {
 				message = `\tFile ${status.file_no} of ${status.total_files}: `+
 					`Completed processing ${filename}\n`;
 			}
-			if(process.stdout.isTTY){
+			if (process.stdout.isTTY) {
 				process.stdout.clearLine();
 				process.stdout.cursorTo(0);
 				process.stdout.write(message);
-			}else{
+			} else {
 				console.log(message);
 			}
 		});
@@ -136,9 +136,9 @@ describe('Running All Tests', ()=>{
 
 	it('Test unsupported encoding', ()=>{
 		var error;
-		try{
+		try {
 			importer.setEncoding("#we&%");
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -147,10 +147,10 @@ describe('Running All Tests', ()=>{
 	it('Test manually connecting', async ()=>{
 		var host = config.host;
 		var error = null;
-		try{
+		try {
 			importer._connection_settings.host = "#$%^";
 			await importer._connect();
-		}catch(e){
+		} catch (e) {
 			error = e;
 			importer._connection_settings.host = host;
 		}
@@ -162,20 +162,20 @@ describe('Running All Tests', ()=>{
 		await importer._connect(); // a second time time, intentionally
 		await importer.use('mysql-import-test-db-1'); // should work with no problems
 		var error;
-		try{
+		try {
 			await importer.use('mysql-import-test-#$%');
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
-		try{ await importer.disconnect(true); }catch(e){}
+		try { await importer.disconnect(true); } catch (e) {}
 		expect(typeof error).to.equal("object");
 	});
 
 	it('Single file error handling', async ()=>{
 		var error;
-		try{
+		try {
 			await importer.importSingleFile("@#$");
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -184,9 +184,9 @@ describe('Running All Tests', ()=>{
 	it('Test fake sql file.', async ()=>{
 		var fake_sql_file = __dirname+"/sample_dump_files/more_sample_files/not_sql.txt";
 		var error;
-		try{
+		try {
 			await importer.importSingleFile(fake_sql_file);
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -196,28 +196,28 @@ describe('Running All Tests', ()=>{
 		var fake_sql_file = __dirname+"/broken_dump_files/dump.sql";
 		var fake_sql_file2 = __dirname+"/broken_dump_files/dump_1.sql";
 		var error;
-		try{
+		try {
 			await importer.import(fake_sql_file, fake_sql_file2);
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
 	});
 
 	it('Test diconnect function.', async ()=>{
-		try{
+		try {
 			importer._conn = false;
 			await importer.disconnect();
 			await importer._connect();
 			await importer.disconnect(false);
-		}catch(e){}
+		} catch (e) {}
 	});
 
 	it('Test fileExist method.', async ()=>{
 		var error;
-		try{
+		try {
 			await importer._fileExists('!@#$');
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -225,9 +225,9 @@ describe('Running All Tests', ()=>{
 
 	it('Test statFile method.', async ()=>{
 		var error;
-		try{
+		try {
 			await importer._statFile('!@#$');
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -235,9 +235,9 @@ describe('Running All Tests', ()=>{
 
 	it('Test readDir method.', async ()=>{
 		var error;
-		try{
+		try {
 			await importer._readDir('!@#$');
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");
@@ -245,9 +245,9 @@ describe('Running All Tests', ()=>{
 
 	it('Testing path parser.', async ()=>{
 		var error;
-		try{
+		try {
 			await importer._getSQLFilePaths('!@#$', '$%^#^', __dirname+"/broken_dump_files");
-		}catch(e){
+		} catch (e) {
 			error = e;
 		}
 		expect(typeof error).to.equal("object");

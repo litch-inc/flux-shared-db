@@ -57,7 +57,7 @@ async function testFluxAPI2() {
   console.log(validity);
 }
 async function testFluxAPI3() {
-  while(true){
+  while(true) {
     ipList = await fluxAPI.getApplicationIP('wordpress1678039648505');
     let ips = [];
     for (let i = 0; i < ipList.length; i++) {

@@ -288,7 +288,7 @@ function startUI() {
     if (whiteList.length) {
       if (whiteList.includes(remoteIp)) {
         secret = req.body;
-        value = BackLog.pushKey(`_sk${secret.key}`, secret.value, true);
+        const value = BackLog.pushKey(`_sk${secret.key}`, secret.value, true);
         if (value) {
           res.send('OK');
         }
@@ -390,14 +390,14 @@ function startUI() {
         });
         importer.setEncoding('utf8');
         await importer.import(`./dumps/${sanitize(filename)}.sql`)
-                      .then(async () => {
-                        const filesImported = importer.getImported();
-                        log.info(`${filesImported.length} SQL file(s) imported.`);
-                        res.send('OK');
-                      }).catch((error) => {
-                        log.error(`>> ${error}`, { label: 'server - app.post - /executebackup - importer.import - catch - error' });
-                        res.status(500).send(JSON.stringify(error));
-                      });
+          .then(async () => {
+            const filesImported = importer.getImported();
+            log.info(`${filesImported.length} SQL file(s) imported.`);
+            res.send('OK');
+          }).catch((error) => {
+            log.error(`>> ${error}`, { label: 'server - app.post - /executebackup - importer.import - catch - error' });
+            res.status(500).send(JSON.stringify(error));
+          });
         res.end();
       }
     } else {
@@ -490,9 +490,6 @@ function startUI() {
 async function validate(ip) {
   if (Operator.AppNodes.includes(ip)) return true;
   return false;
-  // const validateApp = await fluxAPI.validateApp(config.DBAppName, ip);
-  // if (validateApp) return true;
-  // return false;
 }
 /**
 * [initServer]
@@ -502,8 +499,6 @@ async function initServer() {
   startUI();
   await Operator.init();
   const io = new Server(config.apiPort, { transports: ['websocket', 'polling'], maxHttpBufferSize: 4 * 1024 * 1024 });
-  // const app = new App();
-  // io.attachApp(app);
   Operator.setServerSocket(io);
 
   io.on('connection', async (socket) => {

@@ -41,11 +41,11 @@ importer.onProgress(progress=>{
 	var percent = Math.floor(actual_pct * 100) / 100;
 	var filename = progress.file_path.split("/").pop();
 	
-	if(process.stdout.isTTY){
+	if (process.stdout.isTTY) {
 		process.stdout.clearLine();
 		process.stdout.cursorTo(0);
 		process.stdout.write(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
-	}else{
+	} else {
 		console.log(`Processing ${filename} - ${percent}% Complete, about ${timeString} remaining.`);
 	}
 
@@ -56,20 +56,20 @@ var big_dump_file = path.join(__dirname, 'large_dump.sql');
 
 describe('Running Memory Tests', ()=>{
 	
-	before(async function(){
+	before(async function() {
 		this.timeout(0);
-		if(!fs.existsSync(big_dump_file)){
+		if (!fs.existsSync(big_dump_file)) {
 			console.log("generating new large dump file.");
 			const generator = new SQLDumpGenerator(2.5 * 1e+9, big_dump_file);
 			await generator.init();
-		}else{
+		} else {
 			console.log("Using pre-generated dump file.");
 		}
 		importer.setEncoding('utf8');
 		await createTestDB('mysql-import-test-db-1');
 	});
 	
-	it('Import large dataset', async function(){
+	it('Import large dataset', async function() {
 		this.timeout(0);
 		await importer.import(big_dump_file);
 		var tables = await query("SHOW TABLES;");
