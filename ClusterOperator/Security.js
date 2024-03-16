@@ -1,6 +1,6 @@
 /* eslint-disable no-unused-vars */
 const {
-  generateKeyPairSync, randomBytes, createCipheriv, createDecipheriv, publicDecrypt, publicEncrypt, privateDecrypt, privateEncrypt,
+  generateKeyPairSync, randomBytes, createCipheriv, createDecipheriv, publicDecrypt, publicEncrypt, privateDecrypt, privateEncrypt
 } = require('crypto');
 const forge = require('node-forge');
 const log = require('../lib/log');
@@ -26,12 +26,12 @@ class Security {
       modulusLength: 2048,
       publicKeyEncoding: {
         type: 'spki',
-        format: 'pem',
+        format: 'pem'
       },
       privateKeyEncoding: {
         type: 'pkcs8',
-        format: 'pem',
-      },
+        format: 'pem'
+      }
     });
     this.#initVector = randomBytes(16);
     this.#securityKey = randomBytes(32);
@@ -182,7 +182,7 @@ class Security {
       { shortName: 'ST', value: 'New York' },
       { name: 'localityName', value: 'New York' },
       { name: 'organizationName', value: 'InFlux Technologies' },
-      { shortName: 'OU', value: 'IT' },
+      { shortName: 'OU', value: 'IT' }
     ];
     cert.setSubject(attrs);
     cert.setIssuer(attrs);

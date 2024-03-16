@@ -121,7 +121,7 @@ class Operator {
         this.masterWSConn = io.connect(`http://${this.masterNode}:${config.containerApiPort}`, {
           transports: ['websocket'],
           reconnection: false,
-          timeout: 2000,
+          timeout: 2000
         });
         this.masterWSConn.on('connect', async (socket) => {
           const { engine } = this.masterWSConn.io;
@@ -193,7 +193,7 @@ class Operator {
             } else if (sequenceNumber > BackLog.sequenceNumber + 1) {
               if (this.buffer[sequenceNumber] === undefined) {
                 this.buffer[sequenceNumber] = {
-                  query, sequenceNumber, timestamp, connId,
+                  query, sequenceNumber, timestamp, connId
                 };
                 log.info(`pushing seqNo ${sequenceNumber} to the buffer`, 'magenta');
                 this.lastBufferSeqNo = sequenceNumber;
@@ -269,7 +269,7 @@ class Operator {
             appIPList: this.appIPList,
             status: this.status,
             isNotBacklogQuery: Operator.isNotBacklogQuery,
-            sendWriteQuery: Operator.sendWriteQuery,
+            sendWriteQuery: Operator.sendWriteQuery
           });
         }).listen(config.externalDBPort);
 
@@ -592,7 +592,7 @@ class Operator {
           ipList[i].ip = ipList[i].ip.split(':')[0];
         }
         this.OpNodes.push({
-          ip: ipList[i].ip, active: null, seqNo: 0, upnp,
+          ip: ipList[i].ip, active: null, seqNo: 0, upnp
         });
       }
       for (let i = 0; i < appIPList.length; i += 1) {
@@ -706,7 +706,7 @@ class Operator {
       this.IamMaster = false;
       // get dbappspecs
       if (config.DBAppName) {
-        await this.updateAppInfo();
+        await Operator.updateAppInfo();
         // find master candidate
         this.masterCandidates = [];
         for (let i = 0; i < this.OpNodes.length; i += 1) {

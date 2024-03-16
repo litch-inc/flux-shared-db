@@ -119,7 +119,7 @@ class BackLog {
             log.info(`executed ${seqForThis}`);
           }
           this.BLqueryCache.put(seqForThis, {
-            query, seq: seqForThis, timestamp, connId, ip: false,
+            query, seq: seqForThis, timestamp, connId, ip: false
           }, 1000 * 30);
           this.writeLock = false;
           // Abort query execution if there is an error in backlog insert
@@ -540,19 +540,19 @@ class BackLog {
           port: config.dbPort,
           user: config.dbUser,
           password: Security.getKey(),
-          database: config.dbInitDB,
+          database: config.dbInitDB
         },
         dump: {
           schema: {
             table: {
-              dropIfExist: true,
-            },
+              dropIfExist: true
+            }
           },
           data: {
-            verbose: false,
-          },
+            verbose: false
+          }
         },
-        dumpToFile: `./dumps/BU_${timestamp}.sql`,
+        dumpToFile: `./dumps/BU_${timestamp}.sql`
       });
       const endTime = Date.now(); // Record the end time
       log.info(`Backup file created in (${endTime - startTime} ms): BU_${timestamp}.sql`);
@@ -577,7 +577,7 @@ class BackLog {
           return {
             fileName: file,
             fileSize: fileStats.size, // in bytes
-            createdDateTime: fileStats.birthtime, // creation date/time
+            createdDateTime: fileStats.birthtime // creation date/time
           };
         } else {
           return null; // Ignore non-SQL files

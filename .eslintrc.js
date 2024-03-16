@@ -3,10 +3,10 @@ module.exports = {
   env: {
     commonjs: true,
     node: true,
-    mocha: true,
+    mocha: true
   },
   extends: [
-    'airbnb-base',
+    'airbnb-base'
   ],
   rules: {
     'max-len': [
@@ -14,36 +14,34 @@ module.exports = {
       {
         code: 300,
         ignoreUrls: true,
-        ignoreTrailingComments: true,
-      },
+        ignoreTrailingComments: true
+      }
     ],
     'no-console': 'off',
     'default-param-last': 'off',
-    'import/extensions': [
-      'error',
-      'never',
-    ],
+    'import/extensions': ['error', 'never'],
     'linebreak-style': [
       'error',
-      'windows',
+      process.platform === 'win32' ? 'windows' : 'unix'
     ],
+    'comma-dangle': ['error', 'never']
   },
   parser: '@babel/eslint-parser',
   parserOptions: {
     ecmaVersion: 8,
     requireConfigFile: false,
     ecmaFeatures: {
-      experimentalObjectRestSpread: true,
-    },
+      experimentalObjectRestSpread: true
+    }
   },
   overrides: [
     {
       files: [
-        '**/__tests__/*.{j,t}s?(x)',
+        '**/__tests__/*.{j,t}s?(x)'
       ],
       env: {
-        mocha: true,
-      },
-    },
-  ],
+        mocha: true
+      }
+    }
+  ]
 };
