@@ -293,13 +293,17 @@
     console.log(window.loginphrase);
     // Menu & Page manager
     let activePage = "dashboard";
-    if (fragment != '') activePage = fragment.substring(1);
+    if (fragment != '') {
+      activePage = fragment.substring(1);
+    }
     startPage(activePage, apiURL);
     $('.menu-link.active').removeClass('active');
     $(`*[data-page="${activePage}"` ).addClass('active');
     $('#' + activePage).removeClass('d-none');
     $('.menu-link').click(function () {
-      if (window.lock) return;
+      if (window.lock) {
+        return;
+      }
       let newPage = $(this).data('page');
       console.log(newPage);
       $('#' + activePage).toggleClass('d-none');
@@ -330,23 +334,24 @@
       const sqlFile = fileInput.files[0];
 
       if (!sqlFile) {
-          uploadStatus.textContent = 'Please select an SQL file.';
-          return;
+        uploadStatus.textContent = 'Please select an SQL file.';
+        return;
       }
 
       const formData = new FormData();
       formData.append('sqlFile', sqlFile);
 
       try {
-          const response = await axios.post(window.apiURL+'/upload-sql', formData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data'
-              }
-          });
-          uploadStatus.textContent = response.data;
-          getBackupFileList();
+        const response = await axios.post(window.apiURL+'/upload-sql', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          }
+        });
+        uploadStatus.textContent = response.data;
+        getBackupFileList();
       } catch (error) {
-          uploadStatus.textContent = 'Error: ' + error.response.data;
+        console.error(`>> ${error}`);
+        uploadStatus.textContent = 'Error: ' + error.response.data;
       }
     });
 
@@ -362,7 +367,9 @@
       type: 'get', url: window.apiURL + `/logout`,
       success: function (data, status, xhr) {
         console.log(data);
-        if (data === 'OK') window.location.replace(window.apiURL);
+        if (data === 'OK') {
+          window.location.replace(window.apiURL);
+        }
       }
     });
     });
@@ -375,7 +382,96 @@
         window.generatingbackup = false;
       }
     });
+  }
 
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+  }
+
+  function querySelect(e) {
+    if (window.lock) {
+      return;
+    }
+    e = e || window.event;
+    console.log(e);
+    const target = e.target || e.srcElement;
+    $('.query').removeClass('selected');
+    target.classList.add("selected");
+    const seq = target.getAttribute('data-seq');
+    $('#tm-rewind').data('seq', seq);
+    console.log(seq);
+    document.getElementById("tm-rewind").setAttribute("data-seq", seq);
+  }
+
+  function querySelectP(e) {
+    if (window.lock) {
+      return;
+    }
+    e.preventDefault();
+    e.stopPropagation();
+    e = e || window.event;
+    console.log(e);
+    const target = e.target || e.srcElement;
+    $('.query').removeClass('selected');
+    target.parentElement.classList.add("selected");
+    const seq = target.parentElement.getAttribute('data-seq');
+    console.log(seq);
+    document.getElementById("tm-rewind").setAttribute("data-seq", seq);
+  }
+
+  function dn(e) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
+  function rewind(seq) {
+    document.getElementById("tm-rewind").disabled = true;
+    $('#tm-progress').removeClass('d-none');
+    $('#tm-progress-done').addClass('d-none');
+    window.lock = true;
+    console.log(seq);
+    $.ajax({
+      type: 'POST', url: window.apiURL + `/rollback`, data: {seqNo: seq},
+      success: function (data, status, xhr) {
+        console.log('data: ', data);
+        document.getElementById("tm-rewind").disabled = false;
+        window.lock = false;
+        $('#tm-progress').addClass('d-none');
+        $('#tm-progress-done').removeClass('d-none');
+      }
+    });
+  }
+
+  function deleteBUFile(e) {
+    e = e || window.event;
+    const target = e.target || e.srcElement;
+    const filename = target.getAttribute('data-filename');
+    console.log(filename);
+    $('#confirm-modal').modal('show');
+    $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to delete this file?<br><b>${filename}.sql</b></span>`);
+    document.getElementById("confirm-modal").setAttribute('data-callback', 'deleteFile');
+    document.getElementById("confirm-modal").setAttribute('data-param', filename);
+  }
+
+  function executeBUFile(e) {
+    if (!window.import_in_progress) {
+      e = e || window.event;
+      const target = e.target || e.srcElement;
+      window.execute_spinner = target.childNodes[2];
+      const filename = target.getAttribute('data-filename');
+      console.log(filename);
+      $('#confirm-modal').modal('show');
+      $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to execute this file?<br><b>${filename}.sql</b></span></br>
+      <div class="spinner-border" id="modal-spinner" style="width: 1rem; height: 1rem; border: 0.2em solid #000; border-right-color: transparent;" role="status">`);
+      document.getElementById("confirm-modal").setAttribute('data-callback', 'executeFile');
+      document.getElementById("confirm-modal").setAttribute('data-param', filename);
+      $('#modal-spinner').hide();
+    }
   }
   async function startPage(page) {
     console.log(page);
@@ -425,6 +521,7 @@
       getBackupFileList();
     }
   }
+
   async function getBackupFileList() {
     try {
       $('#backup-file-list-spinner').show();
@@ -452,6 +549,7 @@
       console.error(`>> ${error}`, { label: 'index.html - script - getBackupFileList - catch - error' });
     }
   }
+
   async function generateClusterStats() {
     try {
       $('#nodelist-spinner').show();
@@ -480,92 +578,12 @@
       console.error(`>> ${error}`, { label: 'index.html - script - generateClusterStats - catch - error' });
     }
   }
-  function escapeHtml(unsafe) {
-      return unsafe
-          .replace(/&/g, "&amp;")
-          .replace(/</g, "&lt;")
-          .replace(/>/g, "&gt;")
-          .replace(/"/g, "&quot;")
-          .replace(/'/g, "&#039;");
-  }
-  function querySelect(e) {
-    if (window.lock) return;
-    e = e || window.event;
-    console.log(e);
-    const target = e.target || e.srcElement;
-    $('.query').removeClass('selected');
-    target.classList.add("selected");
-    const seq = target.getAttribute('data-seq');
-    $('#tm-rewind').data('seq', seq);
-    console.log(seq);
-    document.getElementById("tm-rewind").setAttribute("data-seq", seq);
-  }
-  function querySelectP(e) {
-    if (window.lock) return;
-    e.preventDefault();
-    e.stopPropagation();
-    e = e || window.event;
-    console.log(e);
-    const target = e.target || e.srcElement;
-    $('.query').removeClass('selected');
-    target.parentElement.classList.add("selected");
-    const seq = target.parentElement.getAttribute('data-seq');
-    console.log(seq);
-    document.getElementById("tm-rewind").setAttribute("data-seq", seq);
-  }
-  function dn(e) {
-    e.preventDefault();
-    e.stopPropagation();
-  }
-  function rewind(seq) {
 
-    document.getElementById("tm-rewind").disabled = true;
-    $('#tm-progress').removeClass('d-none');
-    $('#tm-progress-done').addClass('d-none');
-    window.lock = true;
-    console.log(seq);
-    $.ajax({
-      type: 'POST', url: window.apiURL + `/rollback`, data: {seqNo: seq},
-      success: function (data, status, xhr) {
-        console.log('data: ', data);
-        document.getElementById("tm-rewind").disabled = false;
-        window.lock = false;
-        $('#tm-progress').addClass('d-none');
-        $('#tm-progress-done').removeClass('d-none');
-      }
-    });
-
-  }
-  function deleteBUFile(e) {
-    e = e || window.event;
-    const target = e.target || e.srcElement;
-    const filename = target.getAttribute('data-filename');
-    console.log(filename);
-    $('#confirm-modal').modal('show');
-    $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to delete this file?<br><b>${filename}.sql</b></span>`);
-    document.getElementById("confirm-modal").setAttribute('data-callback', 'deleteFile');
-    document.getElementById("confirm-modal").setAttribute('data-param', filename);
-
-  }
   async function deleteFile(filename) {
     const result = await axios.post(`${window.apiURL}/deletebackup`, { filename }, { timeout: 2000 });
     await getBackupFileList();
   }
-  function executeBUFile(e) {
-    if (!window.import_in_progress) {
-      e = e || window.event;
-      const target = e.target || e.srcElement;
-      window.execute_spinner = target.childNodes[2];
-      const filename = target.getAttribute('data-filename');
-      console.log(filename);
-      $('#confirm-modal').modal('show');
-      $('#confirm-modal .modal-body').html(`<span><i class="fas fa-exclamation-triangle text-danger"></i> This action is irreversible, Are you sure to execute this file?<br><b>${filename}.sql</b></span></br>
-      <div class="spinner-border" id="modal-spinner" style="width: 1rem; height: 1rem; border: 0.2em solid #000; border-right-color: transparent;" role="status">`);
-      document.getElementById("confirm-modal").setAttribute('data-callback', 'executeFile');
-      document.getElementById("confirm-modal").setAttribute('data-param', filename);
-      $('#modal-spinner').hide();
-    }
-  }
+
   async function executeFile(filename) {
     $('#modal-spinner').show();
     window.execute_spinner.classList.remove('d-none');
@@ -576,8 +594,10 @@
     window.execute_spinner.classList.add('d-none');
     await getBackupFileList();
   }
+
   const getCookieValue = (name) => (
-  document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
+    document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
   )
+
   init();
 </script>

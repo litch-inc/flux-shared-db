@@ -53,7 +53,9 @@ class DBClient {
   * [setSocket]
   */
   setSocket(func, id = null) {
-    if (func === null) log.info('socket set to null');
+    if (func === null) {
+      log.info('socket set to null');
+    }
     this.socketCallBack = func;
     this.socketId = id;
     this.enableSocketWrite = true;
@@ -241,11 +243,6 @@ exports.createClient = async function () {
     return cl;
   } catch (error) {
     log.error(`>> ${error}`, { label: 'ClusterOperator - exports.createClient - catch - error' });
-    if ((config.dbType === 'mysql') && (error.code === 'ER_ACCESS_DENIED_ERROR')) {
-      return 'WRONG_KEY';
-      // eslint-disable-next-line no-else-return
-    } else {
-      return null;
-    }
+    return ((config.dbType === 'mysql') && (error.code === 'ER_ACCESS_DENIED_ERROR')) ? 'WRONG_KEY' : null;
   }
 };
