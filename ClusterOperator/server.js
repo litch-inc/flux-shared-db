@@ -32,10 +32,14 @@ const SqlImporter = require('../modules/mysql-import');
 */
 function auth(ip) {
   const whiteList = config.whiteListedIps.split(',');
-  if (whiteList.length && whiteList.includes(ip)) return true;
+  if (whiteList.length && whiteList.includes(ip)) {
+    return true;
+  }
   // only operator nodes can connect
   const idx = Operator.OpNodes.findIndex((item) => item.ip === ip);
-  if (idx === -1) return false;
+  if (idx === -1) {
+    return false;
+  }
   return true;
 }
 /**
@@ -43,7 +47,9 @@ function auth(ip) {
 */
 function authUser(req) {
   let remoteIp = utill.convertIP(req.ip);
-  if (!remoteIp) remoteIp = req.socket.address().address;
+  if (!remoteIp) {
+    remoteIp = req.socket.address().address;
+  }
   let loginphrase = false;
   if (req.headers.loginphrase) {
     loginphrase = req.headers.loginphrase;
@@ -419,7 +425,9 @@ function startUI() {
       const { message } = body;
       if (IdService.verifyLogin(message, signature)) {
         let remoteIp = utill.convertIP(req.ip);
-        if (!remoteIp) remoteIp = req.socket.address().address;
+        if (!remoteIp) {
+          remoteIp = req.socket.address().address;
+        }
         IdService.addNewSession(message, remoteIp);
         Operator.emitUserSession('add', message, remoteIp);
         res.cookie('loginphrase', message);
@@ -435,11 +443,15 @@ function startUI() {
       try {
         const processedBody = ensureObject(body);
         let { signature } = processedBody;
-        if (!signature) signature = req.query.signature;
+        if (!signature) {
+          signature = req.query.signature;
+        }
         const message = processedBody.loginPhrase || processedBody.message || req.query.message;
         if (IdService.verifyLogin(message, signature)) {
           let remoteIp = utill.convertIP(req.ip);
-          if (!remoteIp) remoteIp = req.socket.address().address;
+          if (!remoteIp) {
+            remoteIp = req.socket.address().address;
+          }
           IdService.addNewSession(message, remoteIp);
           Operator.emitUserSession('add', message, remoteIp);
           res.cookie('loginphrase', message);
@@ -488,8 +500,7 @@ function startUI() {
 * @param {string} ip [description]
 */
 async function validate(ip) {
-  if (Operator.AppNodes.includes(ip)) return true;
-  return false;
+  return Operator.AppNodes.includes(ip);
 }
 /**
 * [initServer]
@@ -547,7 +558,9 @@ async function initServer() {
         const record = queryCache.get(index);
         let connId = false;
         if (record) {
-          if (record.ip === ip && record.connId) connId = record.connId;
+          if (record.ip === ip && record.connId) {
+            connId = record.connId;
+          }
           log.info(`sending query: ${index}`, 'magenta');
           socket.emit('query', record.query, record.seq, record.timestamp, connId);
         } else {
@@ -572,8 +585,12 @@ async function initServer() {
         let nodeKey = null;
         if (!(`N${nodeip}` in Operator.keys)) {
           Operator.keys = await BackLog.getAllKeys();
-          if (`N${nodeip}` in Operator.keys) nodeKey = Operator.keys[`N${nodeip}`];
-          if (nodeKey) nodeKey = Security.publicEncrypt(pubKey, Buffer.from(nodeKey, 'hex'));
+          if (`N${nodeip}` in Operator.keys) {
+            nodeKey = Operator.keys[`N${nodeip}`];
+          }
+          if (nodeKey) {
+            nodeKey = Security.publicEncrypt(pubKey, Buffer.from(nodeKey, 'hex'));
+          }
         }
         callback({
           status: Operator.status,
@@ -617,7 +634,11 @@ async function initServer() {
         callback({ status: Operator.status });
       });
       socket.on('userSession', async (op, key, value, callback) => {
-        if (op === 'add') { IdService.addNewSession(key, value); } else { IdService.removeSession(key); }
+        if (op === 'add') {
+          IdService.addNewSession(key, value);
+        } else {
+          IdService.removeSession(key);
+        }
         socket.broadcast.emit('userSession', op, key, value);
         callback({ status: Operator.status });
       });

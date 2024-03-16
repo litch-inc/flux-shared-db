@@ -12,12 +12,14 @@
  *		in the array have been iterated through.
  */
 function slowLoop(items, loopBody) {
-	return new Promise(f => {
-		/* istanbul ignore next */
-		if (!items.length) return f();
-		let done = arguments[2] || f;
-		let idx = arguments[3] || 0;
-		let cb = items[idx + 1] ? () => slowLoop(items, loopBody, done, idx + 1) : done;
-		loopBody(items[idx], idx, cb);
-	});
+  return new Promise((f) => {
+    /* istanbul ignore next */
+    if (!items.length) {
+	  return f();
+	}
+    const done = arguments[2] || f;
+    const idx = arguments[3] || 0;
+    const cb = items[idx + 1] ? () => slowLoop(items, loopBody, done, idx + 1) : done;
+    loopBody(items[idx], idx, cb);
+  });
 }

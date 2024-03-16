@@ -26,8 +26,10 @@ class IdService {
   * [addNewSession]
   */
   static addNewSession(sessionID, userParams) {
-    // eslint-disable-next-line no-param-reassign
-    if (!userParams) userParams = 'NA';
+    if (!userParams) {
+      // eslint-disable-next-line no-param-reassign
+      userParams = 'NA';
+    }
     sessions.put(sessionID, userParams, this.sessionExpireTime);
     log.info(`new session from ${userParams}`);
     return sessionID;
@@ -37,10 +39,14 @@ class IdService {
   * [verifySession]
   */
   static verifySession(sessionID, userParams) {
-    // eslint-disable-next-line no-param-reassign
-    if (!userParams) userParams = 'NA';
+    if (!userParams) {
+      // eslint-disable-next-line no-param-reassign
+      userParams = 'NA';
+    }
     const value = sessions.get(sessionID);
-    if (value !== userParams) return false;
+    if (value !== userParams) {
+      return false;
+    }
     sessions.put(sessionID, userParams, this.sessionExpireTime);
     return true;
   }
@@ -66,9 +72,15 @@ class IdService {
       return false;
     }
     let isValid = false;
-    if (this.ownerZelID) bitcoinMessage.verify(message, this.ownerZelID, signature);
-    if (!isValid) isValid = bitcoinMessage.verify(message, '15c3aH6y9Koq1Dg1rGXE9Ypn5nL2AbSJCu', signature);
-    if (!isValid) isValid = bitcoinMessage.verify(message, '1PLscmdxWLUMStF1EShFSH836kgyKHKKFH', signature);
+    if (this.ownerZelID) {
+      isValid = bitcoinMessage.verify(message, this.ownerZelID, signature);
+    }
+    if (!isValid) {
+      isValid = bitcoinMessage.verify(message, '15c3aH6y9Koq1Dg1rGXE9Ypn5nL2AbSJCu', signature);
+    }
+    if (!isValid) {
+      isValid = bitcoinMessage.verify(message, '1PLscmdxWLUMStF1EShFSH836kgyKHKKFH', signature);
+    }
     return isValid;
   }
 
@@ -88,7 +100,7 @@ class IdService {
   }
 
   static async init() {
-    this.ownerZelID = await fluxAPI.getApplicationOwner(config.AppName);
+    this.ownerZelID = fluxAPI.getApplicationOwner(config.AppName);
   }
 }
 // eslint-disable-next-line func-names

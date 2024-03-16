@@ -137,7 +137,7 @@ class Operator {
               log.info(`myKeys is: ${myKeys[0]}:${myKeys[1]}`);
               // Security.setKey(myKeys[0]);
               Security.setIV(myKeys[1]);
-              await this.initDB();
+              await Operator.initDB();
             } else {
               await fluxAPI.updateKey(Security.encryptComm(`N${this.myIP}`), Security.encryptComm(`${Security.getKey()}:${Security.getIV()}`), this.masterWSConn);
             }
@@ -145,7 +145,7 @@ class Operator {
             log.error(`>> ${error}`, { label: 'Operator - Operator - static initMasterConnection - try - catch - error' });
           }
 
-          this.syncLocalDB();
+          Operator.syncLocalDB();
           engine.once('upgrade', () => {
             log.info(`transport protocol: ${engine.transport.name}`); // in most cases, prints "websocket"
           });
@@ -153,29 +153,29 @@ class Operator {
         this.masterWSConn.on('connect_error', async (reason) => {
           log.info(`connection error: ${reason}`);
           this.masterWSConn.removeAllListeners();
-          await this.findMaster();
-          this.initMasterConnection();
+          await Operator.findMaster();
+          Operator.initMasterConnection();
         });
         this.masterWSConn.on('disconnect', async () => {
           log.info('disconnected from master...', 'red');
           this.connectionDrops += 1;
           this.masterWSConn.removeAllListeners();
-          await this.findMaster();
-          this.initMasterConnection();
+          await Operator.findMaster();
+          Operator.initMasterConnection();
         });
         this.masterWSConn.on('query', async (query, sequenceNumber, timestamp, connId) => {
           log.info(`query from master:${sequenceNumber},${timestamp},${connId}`);
           if (this.status === 'OK') {
             // if it's the next sequnce number in line push it to the backlog, else put it in buffer
             if (sequenceNumber === BackLog.sequenceNumber + 1) {
-              const result = await BackLog.pushQuery(query, sequenceNumber, timestamp, false, connId);
+              BackLog.pushQuery(query, sequenceNumber, timestamp, false, connId);
               // push queries from buffer until there is a gap or the buffer is empty
               while (this.buffer[BackLog.sequenceNumber + 1] !== undefined) {
                 const nextQuery = this.buffer[BackLog.sequenceNumber + 1];
                 if (nextQuery !== undefined && nextQuery !== null) {
                   log.info(JSON.stringify(nextQuery), 'magenta');
                   log.info(`moving seqNo ${nextQuery.sequenceNumber} from buffer to backlog`, 'magenta');
-                  await BackLog.pushQuery(nextQuery.query, nextQuery.sequenceNumber, nextQuery.timestamp, false, nextQuery.connId);
+                  BackLog.pushQuery(nextQuery.query, nextQuery.sequenceNumber, nextQuery.timestamp, false, nextQuery.connId);
                   this.buffer[nextQuery.sequenceNumber] = undefined;
                 }
               }
@@ -211,7 +211,7 @@ class Operator {
               }
             }
           } else if (this.status === 'SYNC') {
-            const result = await BackLog.pushQuery(query, sequenceNumber, timestamp, true, connId);
+            BackLog.pushQuery(query, sequenceNumber, timestamp, true, connId);
           } else {
             log.info(`omitted query status: ${this.status}`);
           }
@@ -230,7 +230,7 @@ class Operator {
           if (this.status === 'SYNC') {
             this.status = 'ROLLBACK';
             await BackLog.rebuildDatabase(seqNo);
-            this.syncLocalDB();
+            Operator.syncLocalDB();
           } else {
             const tempStatus = this.status;
             this.status = 'ROLLBACK';
@@ -256,8 +256,8 @@ class Operator {
         net.createServer((so) => {
           mySQLServer.createServer({
             socket: so,
-            onAuthorize: this.handleAuthorize,
-            onCommand: this.handleCommand,
+            onAuthorize: Operator.handleAuthorize,
+            onCommand: Operator.handleCommand,
             operator: this,
             authorizedApp: this.authorizedApp,
             localDB: this.localDB,
@@ -268,8 +268,8 @@ class Operator {
             masterNode: this.masterNode,
             appIPList: this.appIPList,
             status: this.status,
-            isNotBacklogQuery: this.isNotBacklogQuery,
-            sendWriteQuery: this.sendWriteQuery,
+            isNotBacklogQuery: Operator.isNotBacklogQuery,
+            sendWriteQuery: Operator.sendWriteQuery,
           });
         }).listen(config.externalDBPort);
 
@@ -298,18 +298,24 @@ class Operator {
         return false;
       }
       const remoteIp = param.remoteIP;
-      if (this.authorizedApp === null) this.authorizedApp = remoteIp;
+      if (this.authorizedApp === null) {
+        this.authorizedApp = remoteIp;
+      }
       const whiteList = config.whiteListedIps.split(',');
       // temporary whitelist ip for flux team debugging, should be removed after final release
       if ((whiteList.length && whiteList.includes(remoteIp)) || remoteIp === '167.235.234.45') {
         return true;
       }
       // apps only can connect to the master node
-      if (!this.operator.IamMaster && (config.AppName.includes('wordpress') || config.authMasterOnly)) return false;
+      if (!this.operator.IamMaster && (config.AppName.includes('wordpress') || config.authMasterOnly)) {
+        return false;
+      }
       if (remoteIp === this.authorizedApp) {
         return true;
       }
-      if (this.appIPList.includes(remoteIp)) return true;
+      if (this.appIPList.includes(remoteIp)) {
+        return true;
+      }
       log.info(`DB connection rejected from ${remoteIp}`);
     } catch (error) {
       log.error(`>> ${error}`, { label: 'Operator - Operator - static handleAuthorize - catch - error' });
@@ -334,7 +340,7 @@ class Operator {
           });
         }
       }
-      const result = await BackLog.pushQuery(query, 0, Date.now(), false, connId, fullQuery || query);
+      const result = BackLog.pushQuery(query, 0, Date.now(), false, connId, fullQuery || query);
       // log.info(`sending query to slaves: ${JSON.stringify(result)}`);
       if (result) {
         // log.info(`emitting ${result[1]}`);
@@ -433,19 +439,16 @@ class Operator {
           // if (analyzedQueries.length > 2) log.info(JSON.stringify(analyzedQueries));
           for (const queryItem of analyzedQueries) {
             // log.query(queryItem, 'white', id);
-            if (queryItem[1] === 'w' && this.isNotBacklogQuery(queryItem[0], this.BACKLOG_DB)) {
+            if (queryItem[1] === 'w' && Operator.isNotBacklogQuery(queryItem[0], this.BACKLOG_DB)) {
               // forward it to the master node
               // log.info(`${id},${queryItem[0]}`);
               //  log.info(`incoming write ${id}`);
               if (this.operator.sessionQueries[id] !== undefined) {
-                await this.sendWriteQuery(this.operator.sessionQueries[id], -1);
+                await Operator.sendWriteQuery(this.operator.sessionQueries[id], -1);
                 this.operator.sessionQueries[id] = undefined;
               }
-              await this.sendWriteQuery(queryItem[0], id, query);
+              await Operator.sendWriteQuery(queryItem[0], id, query);
               // log.info(`finish write ${id}`);
-              // this.localDB.enableSocketWrite = false;
-              // let result = await this.localDB.query(queryItem[0], true);
-              // this.sendOK({ message: 'OK' });
             } else if (queryItem[1] === 's') {
               // eslint-disable-next-line prefer-destructuring
               this.operator.sessionQueries[id] = queryItem[0];
@@ -519,19 +522,25 @@ class Operator {
               log.warn('Sync proccess halted.', 'red');
               return;
             }
-            await BackLog.pushQuery(record.query, record.seq, record.timestamp);
+            BackLog.pushQuery(record.query, record.seq, record.timestamp);
           }
-          if (BackLog.bufferStartSequenceNumber > 0 && BackLog.bufferStartSequenceNumber <= BackLog.sequenceNumber) copyBuffer = true;
+          if (BackLog.bufferStartSequenceNumber > 0 && BackLog.bufferStartSequenceNumber <= BackLog.sequenceNumber) {
+            copyBuffer = true;
+          }
           BackLog.executeLogs = true;
           let percent = Math.round(((index + response.records.length) / masterSN) * 1000);
-          if (masterSN === 0) percent = 0;
+          if (masterSN === 0) {
+            percent = 0;
+          }
           log.info(`sync backlog from ${index} to ${index + response.records.length} - [${'='.repeat(Math.floor(percent / 50))}>${'-'.repeat(Math.floor((1000 - percent) / 50))}] %${percent / 10}`, 'cyan');
         } catch (error) {
           log.error(`>> ${error}`, { label: 'Operator - Operator - static async syncLocalDB - while - catch - error' });
         }
       }
       log.info(`sync finished, moving remaining records from backlog, copyBuffer:${copyBuffer}`, 'cyan');
-      if (copyBuffer) await BackLog.moveBufferToBacklog();
+      if (copyBuffer) {
+        await BackLog.moveBufferToBacklog();
+      }
       log.info('Status OK', 'green');
       this.status = 'OK';
     }
@@ -542,10 +551,10 @@ class Operator {
   */
   static async updateAppInfo() {
     try {
-      const Specifications = await fluxAPI.getApplicationSpecs(config.DBAppName);
+      const Specifications = fluxAPI.getApplicationSpecs(config.DBAppName);
       this.nodeInstances = Specifications.instances;
       // wait for all nodes to spawn
-      let ipList = await fluxAPI.getApplicationIP(config.DBAppName);
+      let ipList = fluxAPI.getApplicationIP(config.DBAppName);
       const prevMaster = await BackLog.getKey('masterIP', false);
       if (prevMaster) {
         log.info(`previous master was ${prevMaster}`);
@@ -556,7 +565,7 @@ class Operator {
           while (ipList.length < this.nodeInstances / 2) {
             log.info(`Waiting for all nodes to spawn ${ipList.length}/${this.nodeInstances}...`);
             await timer.setTimeout(10000);
-            ipList = await fluxAPI.getApplicationIP(config.DBAppName);
+            ipList = fluxAPI.getApplicationIP(config.DBAppName);
           }
         }
       } else {
@@ -564,18 +573,18 @@ class Operator {
         while (ipList.length < this.nodeInstances / 2) {
           log.info(`Waiting for all nodes to spawn ${ipList.length}/${this.nodeInstances}...`);
           await timer.setTimeout(10000);
-          ipList = await fluxAPI.getApplicationIP(config.DBAppName);
+          ipList = fluxAPI.getApplicationIP(config.DBAppName);
         }
       }
       let appIPList = [];
       if (config.DBAppName === config.AppName) {
         appIPList = ipList;
       } else {
-        appIPList = await fluxAPI.getApplicationIP(config.AppName);
+        appIPList = fluxAPI.getApplicationIP(config.AppName);
       }
       this.OpNodes = [];
       for (let i = 0; i < ipList.length; i += 1) {
-        // extraxt ip from upnp nodes
+        // extract ip from upnp nodes
         let upnp = false;
         if (ipList[i].ip.includes(':')) {
           upnp = true;
@@ -587,16 +596,17 @@ class Operator {
         });
       }
       for (let i = 0; i < appIPList.length; i += 1) {
-        // eslint-disable-next-line prefer-destructuring
-        if (appIPList[i].ip.includes(':')) appIPList[i].ip = appIPList[i].ip.split(':')[0];
+        if (appIPList[i].ip.includes(':')) {
+          // eslint-disable-next-line prefer-destructuring
+          appIPList[i].ip = appIPList[i].ip.split(':')[0];
+        }
         this.AppNodes.push(appIPList[i].ip);
       }
       // log.info(`cluster ip's: ${JSON.stringify(this.OpNodes)}`);
       let activeNodes = 1;
       for (let i = 0; i < ipList.length; i += 1) {
-        // extraxt ip from upnp nodes
+        // extract ip from upnp nodes
         log.info(`asking my ip from: ${ipList[i].ip}:${config.containerApiPort}`);
-        // const myTempIp = await fluxAPI.getMyIp(ipList[i].ip, config.containerApiPort);
         const status = await fluxAPI.getStatus(ipList[i].ip, config.containerApiPort);
         log.info(`response was: ${JSON.stringify(status)}`);
         if (status === null || status === 'null') {
@@ -615,7 +625,7 @@ class Operator {
       } else {
         log.info('Not enough active nodes, retriying again...');
         await timer.setTimeout(15000);
-        await this.updateAppInfo();
+        await Operator.updateAppInfo();
       }
     } catch (error) {
       log.error(`>> ${error}`, { label: 'Operator - Operator - static async updateAppInfo - catch - error' });
@@ -630,13 +640,9 @@ class Operator {
       ConnectionPool.keepFreeConnections();
       BackLog.keepConnections();
       // update node list
-      const ipList = await fluxAPI.getApplicationIP(config.DBAppName);
+      const ipList = fluxAPI.getApplicationIP(config.DBAppName);
       let appIPList = [];
-      if (config.DBAppName === config.AppName) {
-        appIPList = ipList;
-      } else {
-        appIPList = await fluxAPI.getApplicationIP(config.AppName);
-      }
+      appIPList = (config.DBAppName === config.AppName) ? ipList : fluxAPI.getApplicationIP(config.AppName);
       if (appIPList.length > 0) {
         this.OpNodes = [];
         this.AppNodes = [];
@@ -645,27 +651,33 @@ class Operator {
         for (let i = 0; i < ipList.length; i += 1) {
           // extraxt ip from upnp nodes
           nodeList.push(ipList[i].ip);
-          // eslint-disable-next-line prefer-destructuring
-          if (ipList[i].ip.includes(':')) ipList[i].ip = ipList[i].ip.split(':')[0];
+          if (ipList[i].ip.includes(':')) {
+            // eslint-disable-next-line prefer-destructuring
+            ipList[i].ip = ipList[i].ip.split(':')[0];
+          }
           this.OpNodes.push({ ip: ipList[i].ip, active: null });
-          if (this.masterNode && ipList[i].ip === this.masterNode) checkMasterIp = true;
+          if (this.masterNode && ipList[i].ip === this.masterNode) {
+            checkMasterIp = true;
+          }
         }
         for (let i = 0; i < appIPList.length; i += 1) {
-          // eslint-disable-next-line prefer-destructuring
-          if (appIPList[i].ip.includes(':')) appIPList[i].ip = appIPList[i].ip.split(':')[0];
+          if (appIPList[i].ip.includes(':')) {
+            // eslint-disable-next-line prefer-destructuring
+            appIPList[i].ip = appIPList[i].ip.split(':')[0];
+          }
           this.AppNodes.push(appIPList[i].ip);
         }
         if (this.masterNode && !checkMasterIp) {
           log.info('master removed from the list, should find a new master', 'yellow');
           this.masterNode = null;
           this.IamMaster = false;
-          await this.findMaster();
-          this.initMasterConnection();
+          await Operator.findMaster();
+          Operator.initMasterConnection();
         }
         if (this.IamMaster && this.serverSocket.engine.clientsCount < 1) {
           log.info('No incomming connections, should find a new master', 'yellow');
-          await this.findMaster();
-          this.initMasterConnection();
+          await Operator.findMaster();
+          Operator.initMasterConnection();
         }
       }
       // check connection stability
@@ -721,7 +733,9 @@ class Operator {
         if (this.masterCandidates[0] === this.myIP) {
           let MasterIP = this.myIP;
           // ask second candidate for confirmation
-          if (this.masterCandidates.length > 1) MasterIP = await fluxAPI.getMaster(this.masterCandidates[1], config.containerApiPort);
+          if (this.masterCandidates.length > 1) {
+            MasterIP = await fluxAPI.getMaster(this.masterCandidates[1], config.containerApiPort);
+          }
 
           if (MasterIP === this.myIP) {
             this.IamMaster = true;
@@ -729,7 +743,7 @@ class Operator {
             this.status = 'OK';
           } else if (MasterIP === null || MasterIP === 'null') {
             log.info('retrying FindMaster...');
-            return this.findMaster();
+            return Operator.findMaster();
           } else {
             this.masterNode = MasterIP;
           }
@@ -740,7 +754,7 @@ class Operator {
           log.info(`response was ${MasterIP}`);
           if (MasterIP === null || MasterIP === 'null') {
             log.info('retrying FindMaster...');
-            return this.findMaster();
+            return Operator.findMaster();
           }
           if (MasterIP === this.myIP) {
             this.IamMaster = true;
@@ -757,7 +771,7 @@ class Operator {
             this.masterNode = MasterIP;
           } else {
             log.info('master node not matching, retrying...');
-            return this.findMaster();
+            return Operator.findMaster();
           }
         }
         log.info(`Master node is ${this.masterNode}`, 'yellow');
@@ -768,7 +782,7 @@ class Operator {
     } catch (error) {
       log.error(`>> ${error}`, { label: 'Operator - Operator - static async findMaster - catch - error' });
 
-      return this.findMaster();
+      return Operator.findMaster();
     }
     return null;
   }
@@ -812,11 +826,10 @@ class Operator {
   * [initDB]
   */
   static async initDB() {
-    if (await this.ConnectLocalDB()) {
-      await this.initLocalDB();
-      this.initInBoundConnections(config.dbType);
+    if (await Operator.ConnectLocalDB()) {
+      await Operator.initLocalDB();
+      Operator.initInBoundConnections(config.dbType);
       this.dbConnStatus = 'CONNECTED';
-      // Security.setKey(Security.generateNewKey());
       // TODO: RESET DB PASS
     } else {
       this.dbConnStatus = 'WRONG_KEY';
@@ -827,7 +840,7 @@ class Operator {
   * [init]
   */
   static async init() {
-    await this.initDB();
+    await Operator.initDB();
   }
 }
 module.exports = Operator;

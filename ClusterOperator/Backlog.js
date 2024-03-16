@@ -48,8 +48,7 @@ class BackLog {
           log.info('Backlog DB already exists, moving on...');
         }
         await this.BLClient.setDB(config.dbBacklog);
-        let tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
-          WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogCollection}'`);
+        let tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogCollection}'`);
         if (tableList.length === 0) {
           log.info('Backlog table not defined yet, creating backlog table...');
           await this.BLClient.query(`CREATE TABLE ${config.dbBacklogCollection} (seq bigint, query longtext, timestamp bigint) ENGINE=InnoDB;`);
@@ -61,8 +60,7 @@ class BackLog {
           log.info('Backlog table already exists, moving on...');
           this.sequenceNumber = await BackLog.getLastSequenceNumber();
         }
-        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
-          WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogBuffer}'`);
+        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbBacklogBuffer}'`);
         if (tableList.length === 0) {
           log.info('Backlog buffer table not defined yet, creating buffer table...');
           await this.BLClient.query(`CREATE TABLE ${config.dbBacklogBuffer} (seq bigint, query longtext, timestamp bigint) ENGINE=InnoDB;`);
@@ -73,8 +71,7 @@ class BackLog {
         } else {
           log.info('Backlog buffer table already exists, moving on...');
         }
-        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables
-          WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbOptions}'`);
+        tableList = await this.BLClient.query(`SELECT * FROM INFORMATION_SCHEMA.tables WHERE table_schema = '${config.dbBacklog}' and table_name = '${config.dbOptions}'`);
         if (tableList.length === 0) {
           log.info('Backlog options table not defined yet, creating options table...');
           await this.BLClient.query(`CREATE TABLE ${config.dbOptions} (k varchar(64), value text, PRIMARY KEY (k)) ENGINE=InnoDB;`);
@@ -95,8 +92,10 @@ class BackLog {
   * @return {Array}
   */
   static async pushQuery(query, seq = 0, timestamp, buffer = false, connId = false, fullQuery = '') {
-    // eslint-disable-next-line no-param-reassign
-    if (timestamp === undefined) timestamp = Date.now();
+    if (timestamp === undefined) {
+      // eslint-disable-next-line no-param-reassign
+      timestamp = Date.now();
+    }
     if (!this.BLClient) {
       log.warn('Backlog not created yet. Call createBacklog() first.');
       return [];
@@ -104,23 +103,21 @@ class BackLog {
     try {
       if (config.dbType === 'mysql') {
         if (buffer) {
-          if (this.bufferStartSequenceNumber === 0) this.bufferStartSequenceNumber = seq;
+          if (this.bufferStartSequenceNumber === 0) {
+            this.bufferStartSequenceNumber = seq;
+          }
           this.bufferSequenceNumber = seq;
-          await this.BLClient.execute(
-            `INSERT INTO ${config.dbBacklogBuffer} (seq, query, timestamp) VALUES (?,?,?)`,
-            [seq, query, timestamp],
-          );
+          await this.BLClient.execute(`INSERT INTO ${config.dbBacklogBuffer} (seq, query, timestamp) VALUES (?,?,?)`, [seq, query, timestamp]);
           return [null, seq, timestamp];
         } else {
           this.writeLock = true;
           let result = null;
-          if (seq === 0) { this.sequenceNumber += 1; } else { this.sequenceNumber = seq; }
+          this.sequenceNumber = seq === 0 ? this.sequenceNumber + 1 : seq;
           const seqForThis = this.sequenceNumber;
-          const BLResult = await this.BLClient.execute(
-            `INSERT INTO ${config.dbBacklogCollection} (seq, query, timestamp) VALUES (?,?,?)`,
-            [seqForThis, query, timestamp],
-          );
-          if (this.executeLogs) log.info(`executed ${seqForThis}`);
+          const BLResult = await this.BLClient.execute(`INSERT INTO ${config.dbBacklogCollection} (seq, query, timestamp) VALUES (?,?,?)`, [seqForThis, query, timestamp]);
+          if (this.executeLogs) {
+            log.info(`executed ${seqForThis}`);
+          }
           this.BLqueryCache.put(seqForThis, {
             query, seq: seqForThis, timestamp, connId, ip: false,
           }, 1000 * 30);
@@ -131,7 +128,9 @@ class BackLog {
           } else {
             if (connId === false) {
               // most beckup softwares generate wrong sql statements for mysql v8, this prevents sql_mode related sql errors on v8.
-              if (!query.toLowerCase().startsWith('SET SESSION')) await this.UserDBClient.query("SET SESSION sql_mode='IGNORE_SPACE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'", false, fullQuery);
+              if (!query.toLowerCase().startsWith('SET SESSION')) {
+                await this.UserDBClient.query("SET SESSION sql_mode='IGNORE_SPACE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION'", false, fullQuery);
+              }
               result = await this.UserDBClient.query(query, false, fullQuery);
             } else if (connId >= 0) {
               result = await ConnectionPool.getConnectionById(connId).query(query, false, fullQuery);
@@ -301,7 +300,9 @@ class BackLog {
   static async clearLogs() {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -321,7 +322,9 @@ class BackLog {
   static async rebuildDatabase(seqNo) {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -355,7 +358,9 @@ class BackLog {
   * [destroyBacklog]
   */
   static async destroyBacklog() {
-    if (!this.BLClient) this.BLClient = await dbClient.createClient();
+    if (!this.BLClient) {
+      this.BLClient = await dbClient.createClient();
+    }
     try {
       if (config.dbType === 'mysql') {
         await this.BLClient.query(`DROP DATABASE ${config.dbBacklog}`);
@@ -373,7 +378,9 @@ class BackLog {
   static async clearBuffer() {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -394,7 +401,9 @@ class BackLog {
   static async moveBufferToBacklog() {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
 
     if (config.dbType === 'mysql') {
@@ -403,7 +412,7 @@ class BackLog {
         log.info(`copying seq(${record.seq}) from buffer`);
         try {
           // eslint-disable-next-line no-await-in-loop
-          await BackLog.pushQuery(record.query, record.seq, record.timestamp);
+          BackLog.pushQuery(record.query, record.seq, record.timestamp);
         } catch (error) {
           log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async moveBufferToBacklog - catch - error' });
         }
@@ -411,13 +420,8 @@ class BackLog {
         await this.BLClient.execute(`DELETE FROM ${config.dbBacklogBuffer} WHERE seq=?`, [record.seq]);
       }
       const records2 = await this.BLClient.query(`SELECT * FROM ${config.dbBacklogBuffer} ORDER BY seq`);
-      if (records2.length > 0) {
-        this.bufferStartSequenceNumber = records2[0].seq;
-      } else {
-        this.bufferStartSequenceNumber = 0;
-      }
+      this.bufferStartSequenceNumber = records2.length > 0 ? records2[0].seq : 0;
     }
-    // this.clearBuffer();
     log.info('All buffer data moved to backlog successfully.');
   }
 
@@ -428,7 +432,9 @@ class BackLog {
     const encryptedValue = (encrypt) ? Security.encrypt(value) : value;
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -443,7 +449,6 @@ class BackLog {
       log.error(`>> ${error}`, { label: 'Backlog - BackLog - static async pushKey - catch - error' });
     }
     this.buffer = [];
-    // log.info('Key pushed.');
   }
 
   /**
@@ -452,13 +457,15 @@ class BackLog {
   static async getKey(key, decrypt = true) {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
         const records = await this.BLClient.execute(`SELECT * FROM ${config.dbOptions} WHERE k=?`, [key]);
         if (records.length) {
-          return (decrypt) ? Security.encryptComm(Security.decrypt(records[0].value)) : records[0].value;
+          return decrypt ? Security.encryptComm(Security.decrypt(records[0].value)) : records[0].value;
         }
       }
     } catch (error) {
@@ -473,7 +480,9 @@ class BackLog {
   static async removeKey(key) {
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -495,7 +504,9 @@ class BackLog {
     const keys = {};
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     try {
       if (config.dbType === 'mysql') {
@@ -517,7 +528,9 @@ class BackLog {
     const timestamp = new Date().getTime();
     if (!this.BLClient) {
       this.BLClient = await dbClient.createClient();
-      if (this.BLClient && config.dbType === 'mysql') await this.BLClient.setDB(config.dbBacklog);
+      if (this.BLClient && config.dbType === 'mysql') {
+        await this.BLClient.setDB(config.dbBacklog);
+      }
     }
     if (this.BLClient) {
       const startTime = Date.now(); // Record the start time
@@ -555,7 +568,6 @@ class BackLog {
     const folderPath = './dumps/';
     try {
       const files = fs.readdirSync(folderPath);
-
       const sqlFilesInfo = files.map((file) => {
         const filePath = path.join(folderPath, file);
         const fileStats = fs.statSync(filePath);
