@@ -43,7 +43,7 @@ class Importer {
       'latin1',
       'ascii',
       'base64',
-      'hex',
+      'hex'
     ];
     if (!supported_encodings.includes(encoding)) {
       throw new Error("Unsupported encoding: "+encoding);
@@ -192,16 +192,16 @@ class Importer {
             file_no: this._current_file_no,
             bytes_processed: progress,
             total_bytes: fileObj.size,
-            file_path: fileObj.file,
+            file_path: fileObj.file
           });
-        },
+        }
       });
 
       const dumpCompletedCB = (error) => this._dumpCompletedCB({
         total_files: this._total_files,
         file_no: this._current_file_no,
         file_path: fileObj.file,
-        error,
+        error
       });
 
       parser.on('finish', () => {
@@ -330,7 +330,7 @@ class Importer {
             if (filepath.toLowerCase().substring(filepath.length-4) === '.sql') {
               full_paths.push({
                 file: path.resolve(filepath),
-                size: stat.size,
+                size: stat.size
               });
             }
             next();

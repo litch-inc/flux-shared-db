@@ -97,7 +97,7 @@ function startUI() {
   app.use(fileUpload());
   const limiter = RateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // max 100 requests per windowMs
+    max: 100 // max 100 requests per windowMs
   });
   fs.writeFileSync('errors.txt', `version: ${config.version}<br>`);
   fs.writeFileSync('warnings.txt', `version: ${config.version}<br>`);
@@ -209,7 +209,7 @@ function startUI() {
     while (true) {
       res.write(`${JSON.stringify({
         type: 'stream',
-        chunk: count++,
+        chunk: count++
       })}\r\n\r\n`);
       await timer.setTimeout(2000);
       // console.log(count);
@@ -222,7 +222,7 @@ function startUI() {
     res.send({
       status: Operator.status,
       sequenceNumber: BackLog.sequenceNumber,
-      masterIP: Operator.getMaster(),
+      masterIP: Operator.getMaster()
     });
     res.end();
   });
@@ -388,7 +388,7 @@ function startUI() {
         await timer.setTimeout(2000);
         const importer = new SqlImporter({
           callback: Operator.sendWriteQuery,
-          serverSocket: Operator.serverSocket,
+          serverSocket: Operator.serverSocket
         });
         importer.onProgress((progress) => {
           const percent = Math.floor((progress.bytes_processed / progress.total_bytes) * 10000) / 100;
@@ -484,7 +484,7 @@ function startUI() {
     const keys = Security.generateRSAKey();
     const httpsOptions = {
       key: keys.pemPrivateKey,
-      cert: keys.pemCertificate,
+      cert: keys.pemCertificate
     };
     https.createServer(httpsOptions, app).listen(config.debugUIPort, () => {
       log.info(`starting SSL interface on port ${config.debugUIPort}`);
@@ -526,7 +526,7 @@ async function initServer() {
           status: Operator.status,
           sequenceNumber: BackLog.sequenceNumber,
           remoteIP: utill.convertIP(socket.handshake.address),
-          masterIP: Operator.getMaster(),
+          masterIP: Operator.getMaster()
         });
       });
       socket.on('getMaster', async (callback) => {
@@ -549,7 +549,7 @@ async function initServer() {
         socket.emit('query', query, result[1], result[2], connId);
         // cache write queries for 20 seconds
         queryCache.put(result[1], {
-          query, seq: result[1], timestamp: result[2], connId, ip,
+          query, seq: result[1], timestamp: result[2], connId, ip
         }, 1000 * 60);
         callback({ status: Operator.status, result: result[0] });
       });
@@ -596,7 +596,7 @@ async function initServer() {
           status: Operator.status,
           commAESKey: Security.publicEncrypt(pubKey, Security.getCommAESKey()),
           commAESIV: Security.publicEncrypt(pubKey, Security.getCommAESIv()),
-          key: nodeKey,
+          key: nodeKey
         });
       });
       socket.on('updateKey', async (key, value, callback) => {

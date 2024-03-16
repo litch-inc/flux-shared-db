@@ -22,7 +22,7 @@ class DBClient {
   async createStream() {
     this.stream = net.connect({
       host: config.dbHost,
-      port: config.dbPort,
+      port: config.dbPort
     });
     const { stream } = this;
     return new Promise((resolve, reject) => {
@@ -82,7 +82,7 @@ class DBClient {
       this.connection = await mySql.createConnection({
         password: Security.getKey(),
         user: config.dbUser,
-        stream: this.stream,
+        stream: this.stream
       });
       this.connection.once('error', () => {
         this.connected = false;

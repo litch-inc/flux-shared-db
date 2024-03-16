@@ -46,15 +46,14 @@ function getTables(connection, dbName, restrictedTables, restrictedTablesIsBlack
       isView: r.Table_type === 'VIEW',
       columns: {},
       columnsOrdered: [],
-      triggers: [],
+      triggers: []
     }));
     let tables = actualTables;
     if (restrictedTables.length > 0) {
       if (restrictedTablesIsBlacklist) {
         // exclude the tables from the options that actually exist in the db
         tables = tables.filter((t) => restrictedTables.indexOf(t.name) === -1);
-      }
-      else {
+      } else {
         // only include the tables from the options that actually exist in the db
         // keeping the order of the passed-in whitelist and filtering out non-existing tables
         tables = restrictedTables
@@ -76,7 +75,7 @@ function getTables(connection, dbName, restrictedTables, restrictedTablesIsBlack
           // split to remove the lengths
             .split('(')[0]
             .toLowerCase(),
-          nullable: c.Null === 'YES',
+          nullable: c.Null === 'YES'
         };
         return acc;
       }, {});
@@ -127,9 +126,7 @@ function getSchemaDump(connection, options, tables) {
             s.schema = s.schema.replace(/^CREATE( OR REPLACE)?( ALGORITHM[ ]?=[ ]?\w+)? DEFINER[ ]?=[ ]?.+?@.+?( )/, 'CREATE$1$2$3');
           }
           if (!options.view.sqlSecurity) {
-            s.schema = s.schema.replace(
-              // eslint-disable-next-line max-len
-              /^CREATE( OR REPLACE)?( ALGORITHM[ ]?=[ ]?\w+)?( DEFINER[ ]?=[ ]?.+?@.+)? SQL SECURITY (?:DEFINER|INVOKER)/, 'CREATE$1$2$3');
+            s.schema = s.schema.replace(/^CREATE( OR REPLACE)?( ALGORITHM[ ]?=[ ]?\w+)?( DEFINER[ ]?=[ ]?.+?@.+)? SQL SECURITY (?:DEFINER|INVOKER)/, 'CREATE$1$2$3');
           }
         } else {
           if (options.table.dropIfExist) {
@@ -160,7 +157,7 @@ function getSchemaDump(connection, options, tables) {
           //'# ------------------------------------------------------------',
           '',
           s.schema,
-          '',
+          ''
         ].join('\n');
         return s;
       })
@@ -215,8 +212,7 @@ function getTriggerDump(connection, dbName, options, tables) {
         // add the delimiter in case it's a multi statement trigger
         if (options.delimiter) {
           sql = `DELIMITER ${options.delimiter}\n${sql}${options.delimiter}\nDELIMITER ;`;
-        }
-        else {
+        } else {
           // else just add a semicolon
           sql = `${sql};`;
         }
@@ -231,7 +227,7 @@ function getTriggerDump(connection, dbName, options, tables) {
           '# ------------------------------------------------------------',
           '',
           sql,
-          '',
+          ''
         ].join('\n');
         table.triggers.push(sql);
         return table;
@@ -251,7 +247,7 @@ const numberTypes = new Set([
   'numeric',
   'float',
   'double',
-  'real',
+  'real'
 ]);
 const stringTypes = new Set([
   'date',
@@ -267,7 +263,7 @@ const stringTypes = new Set([
   'tinytext',
   'set',
   'enum',
-  'json',
+  'json'
 ]);
 const bitTypes = new Set(['bit']);
 const hexTypes = new Set([
@@ -276,7 +272,7 @@ const hexTypes = new Set([
   'mediumblob',
   'longblob',
   'binary',
-  'varbinary',
+  'varbinary'
 ]);
 const geometryTypes = new Set([
   'point',
@@ -285,7 +281,7 @@ const geometryTypes = new Set([
   'multipoint',
   'multilinestring',
   'multipolygon',
-  'geometrycollection',
+  'geometrycollection'
 ]);
 function resolveType(columnType) {
   if (numberTypes.has(columnType)) {
@@ -320,7 +316,7 @@ function parseGeometryValue(buffer) {
     4: 'MULTIPOINT',
     5: 'MULTILINESTRING',
     6: 'MULTIPOLYGON',
-    7: 'GEOMETRYCOLLECTION',
+    7: 'GEOMETRYCOLLECTION'
   };
   function readDouble(byteOrder) {
     /* istanbul ignore next */ // ignore coverage for this line as it depends on internal db config
@@ -501,7 +497,7 @@ function typeCast(tables) {
 function buildInsert(table, values, format$$1) {
   const sql = format$$1([
     `INSERT INTO \`${table.name}\` (\`${table.columnsOrdered.join('`,`')}\`)`,
-    `VALUES ${values.join(',')};`,
+    `VALUES ${values.join(',')};`
   ].join(' '));
     // sql-formatter lib doesn't support the X'aaff' or b'01010' literals, and it adds a space in and breaks them
     // this undoes the wrapping we did to get around the formatting
@@ -511,14 +507,16 @@ function buildInsertValue(row, table) {
   return `(${table.columnsOrdered.map((c) => row[c]).join(',')})`;
 }
 function executeSql(connection, sql) {
-  return new Promise((resolve, reject) => connection.query(sql, (error) => {
-    if (error) {
-      log.error(`>> ${error}`, { label: 'cjs - executeSql - Promise - connection.query - error' });
-      reject(error);
-    } else {
-      resolve();
-    }
-  }));
+  return new Promise((resolve, reject) => {
+    connection.query(sql, (error) => {
+      if (error) {
+        log.error(`>> ${error}`, { label: 'cjs - executeSql - Promise - connection.query - error' });
+        reject(error);
+      } else {
+        resolve();
+      }
+    });
+  });
 }
 // eslint-disable-next-line complexity
 function getDataDump(connectionOptions, options, tables, dumpToFile) {
@@ -536,8 +534,8 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
       connectionOptions,
       {
         multipleStatements: true,
-        typeCast: typeCast(tables),
-      },
+        typeCast: typeCast(tables)
+      }
     ]));
     const retTables = [];
     let currentTableLines = null;
@@ -545,7 +543,7 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
     const outFileStream = dumpToFile
       ? fs.createWriteStream(dumpToFile, {
         flags: 'a',
-        encoding: 'utf8',
+        encoding: 'utf8'
       })
       : null;
     function saveChunk(str, inArray = true) {
@@ -576,8 +574,8 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
           retTables.push(deepmerge.all([
             table,
             {
-              data: null,
-            },
+              data: null
+            }
           ]));
           // eslint-disable-next-line no-continue
           continue;
@@ -593,7 +591,7 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
             '# ------------------------------------------------------------',
             `# DATA DUMP FOR TABLE: ${table.name}${options.lockTables ? ' (locked)' : ''}`,
             '# ------------------------------------------------------------',
-            '',
+            ''
           ];
           saveChunk(header);
         }
@@ -637,13 +635,12 @@ function getDataDump(connectionOptions, options, tables, dumpToFile) {
           {
             data: currentTableLines
               ? currentTableLines.join('\n')
-              : null,
-          },
+              : null
+          }
         ]));
       }
       saveChunk('');
-    }
-    finally {
+    } finally {
       if (options.lockTables) {
         // see: https://dev.mysql.com/doc/refman/5.7/en/replication-solutions-backups-read-only.html
         yield executeSql(connection, 'SET GLOBAL read_only = OFF');
@@ -671,8 +668,7 @@ function compressFile(filename) {
   const deleteFile = (file) => {
     try {
       fs.unlinkSync(file);
-    }
-    catch (_err) {
+    } catch (_err) {
       /* istanbul ignore next */
     }
   };
@@ -688,19 +684,18 @@ function compressFile(filename) {
           // close the write stream and propagate the error
           write.end();
           reject(error);
-        });
+        }
+      );
       write.on('finish', () => {
         resolve();
       });
     });
-  }
-  catch (error) /* istanbul ignore next */ {
+  } catch (error) /* istanbul ignore next */ {
     log.error(`>> ${error}`, { label: 'cjs - compressFile - catch - error' });
     // in case of an error: remove the output file and propagate the error
     deleteFile(filename);
     throw error;
-  }
-  finally {
+  } finally {
     // in any case: remove the temp file
     deleteFile(tempFilename);
   }
@@ -764,15 +759,15 @@ const ERRORS = {
   MISSING_CONNECTION_HOST: 'Expected to be given `host` connection option.',
   MISSING_CONNECTION_DATABASE: 'Expected to be given `database` connection option.',
   MISSING_CONNECTION_USER: 'Expected to be given `user` connection option.',
-  MISSING_CONNECTION_PASSWORD: 'Expected to be given `password` connection option.',
+  MISSING_CONNECTION_PASSWORD: 'Expected to be given `password` connection option.'
 };
 
 // a bunch of session variables we use to make the import work smoothly
 const HEADER_VARIABLES = [
-  "SET SESSION sql_mode='IGNORE_SPACE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';",
+  "SET SESSION sql_mode='IGNORE_SPACE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';"
 ].join('\n');
 const FOOTER_VARIABLES = [
-  '',
+  ''
 ].join('\n');
 
 const defaultOptions = {
@@ -783,7 +778,7 @@ const defaultOptions = {
     password: '',
     database: '',
     charset: 'UTF8_GENERAL_CI',
-    ssl: null,
+    ssl: null
   },
   dump: {
     tables: [],
@@ -795,14 +790,14 @@ const defaultOptions = {
       table: {
         ifNotExist: true,
         dropIfExist: false,
-        charset: true,
+        charset: true
       },
       view: {
         createOrReplace: true,
         algorithm: false,
         definer: false,
-        sqlSecurity: false,
-      },
+        sqlSecurity: false
+      }
     },
     data: {
       format: true,
@@ -811,15 +806,15 @@ const defaultOptions = {
       includeViewData: false,
       where: {},
       returnFromFunction: false,
-      maxRowsPerInsertStatement: 1,
+      maxRowsPerInsertStatement: 1
     },
     trigger: {
       delimiter: ';;',
       dropIfExist: true,
-      definer: false,
-    },
+      definer: false
+    }
   },
-  dumpToFile: null,
+  dumpToFile: null
 };
 function assert(condition, message) {
   if (!condition) {
@@ -840,13 +835,13 @@ function main(inputOptions) {
       assert(typeof inputOptions.connection.password === 'string', ERRORS.MISSING_CONNECTION_PASSWORD);
       const options = deepmerge.all([
         defaultOptions,
-        inputOptions,
+        inputOptions
       ]);
       // if not dumping to file and not otherwise configured, set returnFromFunction to true.
       if (!options.dumpToFile) {
-        const hasValue = inputOptions.dump &&
-                    inputOptions.dump.data &&
-                    inputOptions.dump.data.returnFromFunction !== undefined;
+        const hasValue = inputOptions.dump
+                    && inputOptions.dump.data
+                    && inputOptions.dump.data.returnFromFunction !== undefined;
         if (options.dump.data && !hasValue) {
           options.dump
             .data.returnFromFunction = true;
@@ -868,9 +863,9 @@ function main(inputOptions) {
         dump: {
           schema: null,
           data: null,
-          trigger: null,
+          trigger: null
         },
-        tables: yield getTables(connection, options.connection.database, options.dump.tables, options.dump.excludeTables),
+        tables: yield getTables(connection, options.connection.database, options.dump.tables, options.dump.excludeTables)
       };
       // dump the schema if requested
       if (options.dump.schema !== false) {
